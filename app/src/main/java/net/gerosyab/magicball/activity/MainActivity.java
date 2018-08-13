@@ -18,8 +18,10 @@ package net.gerosyab.magicball.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -154,7 +156,13 @@ public class MainActivity extends AppCompatActivity implements Shaker.Callback {
     @Override
     public void onShakingDetected() {
         MyLog.d("MainActivity", "onShakingDetected getSupportFragmentManager().getBackStackEntryCount() " + getSupportFragmentManager().getBackStackEntryCount());
-        vibrator.vibrate(Const.vibTime);
+        // vibrator.vibrate(Const.vibTime); //deprecated since API 24
+        if (Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(Const.vibTime,VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vibrator.vibrate(Const.vibTime);
+        }
+
         if (getSupportFragmentManager().getBackStackEntryCount() > 0){
             MyLog.d("MainActivity", "fragmentManager.getBackStackEntryCount() > 0");
             if(msgFragment != null) {
