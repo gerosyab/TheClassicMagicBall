@@ -1,5 +1,22 @@
 <resources>
     <string name="app_name">TheClasicMagicBall</string>
-    <string name="copyright">COPYRIGHT <![CDATA[ⓒ]]> 2014 GEROSYAB</string>
+    <string name="copyright">COPYRIGHT <![CDATA[ⓒ]]> 2014 DAISSUE</string>
     <string name="information"><u>INFORMATION</u></string>
+    <string name="hint_shake_me">SHAKE ME</string>
+    <string name="hint_touch_me">TOUCH ME</string>
+    <string name="msg_miss_me">MISS ME?</string>
+    <string name="msg_boring">BORING…</string>
+    <string name="msg_ask_me">ASK ME</string>
+    <string name="msg_and">AND</string>
+    <string name="msg_find_answer">FIND THE ANSWER</string>
+    <string name="msg_but">BUT</string>
+    <string name="msg_do_not_trust">DO NOT TRUST ME TOO MUCH</string>
+    <string name="msg_might_be_wrong">I MIGHT BE WRONG</string>
+    <string name="msg_sometimes">SOMETIMES</string>
+    <string name="back">Back</string>
+    <string name="capture">Capture</string>
+    <string name="capture_saved">Saved to gallery</string>
+    <string name="capture_failed">Could not save image</string>
+    <string name="capture_requires_api">Screenshot needs Android 8+ for this view</string>
+    <string name="exit_press_again">Back again to exit</string>
 </resources>

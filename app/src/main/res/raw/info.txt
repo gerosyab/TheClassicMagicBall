@@ -1,4 +1,4 @@
-This is open source project of android magic ball simulator under GPL V3 license, hosted by https://github.com/gerosyab/TheClassicMagic8Ball
+This is open source project of android magic ball simulator under GPL V3 license. Copyright (c) 2014 DAISSUE. Originally hosted by https://github.com/gerosyab/TheClassicMagic8Ball
 
 
 GNU GENERAL PUBLIC LICENSE

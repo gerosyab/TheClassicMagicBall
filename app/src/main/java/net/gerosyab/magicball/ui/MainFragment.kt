@@ -1,0 +1,229 @@
+/*
+ * TheClassicMagicBall - Android Magic 8 Ball Simulator
+ * Copyright (C) 2014 DAISSUE
+ */
+package net.gerosyab.magicball.ui
+
+import android.graphics.Color
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.SpannableString
+import android.text.util.Linkify
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.TextSwitcher
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
+import java.io.ByteArrayOutputStream
+import java.util.Timer
+import java.util.TimerTask
+import net.gerosyab.magicball.R
+import net.gerosyab.magicball.databinding.MainFragmentBinding
+import net.gerosyab.magicball.util.MyLog
+
+class MainFragment : Fragment() {
+    private var _binding: MainFragmentBinding? = null
+    private val binding get() = _binding!!
+
+    private var activityRef: MainActivity? = null
+    private var timer: Timer? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private var tickSecond = -1
+    private var hintPhase = 0
+    private var secondaryIdx = -1
+    private var secondaryBlank = true
+
+    private var isBallTouched = false
+
+    private val secondaryMessages: Array<String> by lazy {
+        arrayOf(
+            getString(R.string.msg_miss_me),
+            getString(R.string.msg_boring),
+            getString(R.string.msg_ask_me),
+            getString(R.string.msg_and),
+            getString(R.string.msg_find_answer),
+            getString(R.string.msg_but),
+            getString(R.string.msg_do_not_trust),
+            getString(R.string.msg_might_be_wrong),
+            getString(R.string.msg_sometimes),
+        )
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        MyLog.d("MainFragment", "onCreateView")
+        _binding = MainFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        super.onViewCreated(view, savedInstanceState)
+        val ctx = requireContext()
+        val fadeIn = AnimationUtils.loadAnimation(ctx, android.R.anim.fade_in)
+        val fadeOut = AnimationUtils.loadAnimation(ctx, android.R.anim.fade_out)
+
+        binding.hintTextSwitcher.setFactory {
+            makeSwitcherTextView(ctx)
+        }
+        binding.secondaryTextSwitcher.setFactory {
+            makeSwitcherTextView(ctx)
+        }
+        binding.hintTextSwitcher.inAnimation = fadeIn
+        binding.hintTextSwitcher.outAnimation = fadeOut
+        binding.secondaryTextSwitcher.inAnimation = fadeIn
+        binding.secondaryTextSwitcher.outAnimation = fadeOut
+
+        binding.infoText.setOnClickListener { showInfoDialog() }
+
+        binding.frontview.setOnTouchListener { _, event ->
+            val fv = binding.frontview
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    if (isInsideBall(event.x, event.y, fv)) {
+                        isBallTouched = true
+                    }
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (isBallTouched &&
+                        isInsideBall(event.x, event.y, fv)
+                    ) {
+                        isBallTouched = false
+                        activityRef?.onBallTouched()
+                    }
+                }
+            }
+            true
+        }
+
+        startTimer()
+    }
+
+    private fun makeSwitcherTextView(ctx: android.content.Context): TextView {
+        return TextView(ctx).apply {
+            gravity = Gravity.CENTER
+            textSize = 20f
+            setTextColor(Color.WHITE)
+        }
+    }
+
+    private fun isInsideBall(
+        x: Float,
+        y: Float,
+        fv: net.gerosyab.magicball.ui.view.FrontView,
+    ): Boolean {
+        val dx = x - fv.cx
+        val dy = y - fv.cy
+        val r = fv.radius
+        return dx * dx + dy * dy <= r * r
+    }
+
+    private fun showInfoDialog() {
+        val message =
+            try {
+                resources.openRawResource(R.raw.info).use { input ->
+                    ByteArrayOutputStream().use { bos ->
+                        input.copyTo(bos)
+                        bos.toString(Charsets.UTF_8.name())
+                    }
+                }
+            } catch (_: Exception) {
+                return
+            }
+        val s = SpannableString(message)
+        Linkify.addLinks(s, Linkify.WEB_URLS)
+        val dialog =
+            AlertDialog.Builder(requireContext())
+                .setTitle("Information")
+                .setMessage(s)
+                .create()
+        dialog.show()
+        dialog.findViewById<TextView>(android.R.id.message)?.textSize = 12f
+    }
+
+    private fun startTimer() {
+        timer?.cancel()
+        timer =
+            Timer().apply {
+                scheduleAtFixedRate(
+                    object : TimerTask() {
+                        override fun run() {
+                            handler.post { onTick() }
+                        }
+                    },
+                    0L,
+                    1000L,
+                )
+            }
+    }
+
+    private fun onTick() {
+        tickSecond++
+        if (tickSecond % 2 == 0) {
+            hintPhase = (hintPhase + 1) % 2
+            val hint =
+                if (hintPhase == 0) {
+                    getString(R.string.hint_shake_me)
+                } else {
+                    getString(R.string.hint_touch_me)
+                }
+            binding.hintTextSwitcher.setText(hint)
+        }
+        if (tickSecond % 4 == 3 && !secondaryBlank) {
+            secondaryBlank = true
+            binding.secondaryTextSwitcher.setText("")
+        } else if (tickSecond % 4 == 0 && secondaryBlank) {
+            secondaryBlank = false
+            secondaryIdx = (secondaryIdx + 1) % secondaryMessages.size
+            binding.secondaryTextSwitcher.setText(secondaryMessages[secondaryIdx])
+        }
+    }
+
+    override fun onAttach(context: android.content.Context) {
+        MyLog.d("MainFragment", "onAttach")
+        super.onAttach(context)
+        activityRef = context as? MainActivity
+    }
+
+    override fun onDetach() {
+        activityRef = null
+        super.onDetach()
+    }
+
+    override fun onResume() {
+        MyLog.d("MainFragment", "onResume")
+        super.onResume()
+        tickSecond = -1
+        hintPhase = 0
+        secondaryIdx = -1
+        secondaryBlank = true
+        binding.hintTextSwitcher.setText("")
+        binding.secondaryTextSwitcher.setText("")
+        startTimer()
+    }
+
+    override fun onPause() {
+        timer?.cancel()
+        timer = null
+        super.onPause()
+    }
+
+    override fun onDestroyView() {
+        timer?.cancel()
+        timer = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+}
