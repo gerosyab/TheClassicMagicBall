@@ -106,8 +106,6 @@ class MainFragment : Fragment() {
             }
             true
         }
-
-        startTimer()
     }
 
     private fun makeSwitcherTextView(ctx: android.content.Context): TextView {
