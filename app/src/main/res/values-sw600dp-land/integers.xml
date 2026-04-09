@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Narrow portrait strip / letterboxed tablet: shrink balls -->
+<resources>
+    <integer name="front_ball_radius_percent">82</integer>
+    <integer name="msg_ball_radius_percent">88</integer>
+</resources>

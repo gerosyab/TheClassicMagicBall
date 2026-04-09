@@ -16,13 +16,9 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import java.util.ArrayList
-import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.min
-import kotlin.math.sin
 import net.gerosyab.magicball.R
 import net.gerosyab.magicball.data.Const
-import net.gerosyab.magicball.ui.MainActivity
 import net.gerosyab.magicball.util.MyLog
 
 class MsgView
@@ -32,19 +28,12 @@ class MsgView
         attrs: AttributeSet? = null,
         defStyle: Int = 0,
     ) : View(context, attrs, defStyle) {
-        private var shaker: net.gerosyab.magicball.util.Shaker? = null
         private var widthPx = 0
         private var heightPx = 0
         var cx: Float = 0f
             private set
         var cy: Float = 0f
             private set
-        private var bcx: Float = 0f
-        private var bcy: Float = 0f
-        private var x: Float = 0f
-        private var y: Float = 0f
-        private var bcxCon: Float = 0f
-        private var bcyCon: Float = 0f
         private var outerRadius = 0f
         private var reflectRadius = 0f
         private val reflectRectF = RectF()
@@ -60,8 +49,6 @@ class MsgView
         private val innerOuterPaint = Paint()
         private val innerInnerPaint = Paint()
         private val points = ArrayList<Point>()
-        private var cxcyBoundaryRadius = 0f
-        private var cxcyBoundaryRadiusSquare = 0f
         private val opts = BitmapFactory.Options()
         private val reflectionBoundary = 15f
         private var reflectionDegree = 0f
@@ -72,13 +59,6 @@ class MsgView
         private var nBitmapHalfHeight = 0f
         private var nMsgTriangleWidth = 0f
         private var nMsgTriangleHeight = 0f
-        private var rIncrease = false
-        private var isBoundaryOut = false
-        private var mSensorX = 0f
-        private var mSensorY = 0f
-        private var radian = 0f
-        private val rBoundary = 5f
-        private var degree = 0f
         private var appearFlag = false
         private val alphaValueTable =
             intArrayOf(
@@ -105,7 +85,6 @@ class MsgView
         @JvmField
         var msgIdx: Int = 0
 
-        /** 1f = phone (large ball); &lt;1 shrinks ball on tablet side panel. */
         var tabletScaleFactor: Float = 1f
             set(value) {
                 field = value.coerceIn(0.35f, 1f)
@@ -126,12 +105,12 @@ class MsgView
             widthPx = w
             heightPx = h
             if (w <= 0 || h <= 0) return
-            shaker = MainActivity.getShakerInstance()
             val scale = tabletScaleFactor.coerceIn(0.35f, 1f)
+            val minDim = min(w, h).toFloat()
             val maxDiamPx = resources.getDimension(R.dimen.magic_ball_max_diameter)
             val maxRadiusCap = maxDiamPx / 2f
-            val radiusFromWidth = w * 0.75f * scale
-            val maxRadiusFromHeight = h * 0.42f
+            val radiusFromWidth = minDim * 0.75f * scale
+            val maxRadiusFromHeight = minDim * 0.42f
             var r = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
             val pct = resources.getInteger(R.integer.msg_ball_radius_percent).coerceIn(70, 220)
             r *= pct / 100f
@@ -139,21 +118,12 @@ class MsgView
             reflectRadius = outerRadius * 0.95f
             innerOuterRadius = outerRadius * 0.5f
             innerInnerRadius = outerRadius * 0.45f
-            cxcyBoundaryRadius = innerInnerRadius * 0.2f
-            cxcyBoundaryRadiusSquare = cxcyBoundaryRadius * cxcyBoundaryRadius
-            // Message bitmap (triangle art) side length: was innerOuterRadius * 1.2f; +20% → *1.44f
             nMsgTriangleWidth = innerOuterRadius * 1.44f
             nMsgTriangleHeight = innerOuterRadius * 1.44f
             nBitmapHalfWidth = nMsgTriangleWidth / 2f
             nBitmapHalfHeight = nMsgTriangleHeight / 2f
             cx = w / 2f
             cy = h / 2f
-            x = cx - nBitmapHalfWidth
-            y = cy - nBitmapHalfHeight
-            bcx = cx
-            bcy = cy
-            bcxCon = 0f
-            bcyCon = 0f
             debugPaint.color = Color.YELLOW
             debugPaint.isAntiAlias = true
             debugPaint.strokeWidth = 2f
@@ -236,70 +206,43 @@ class MsgView
             canvas.drawArc(reflectRectF, 135 + reflectionDegree, 180f, true, reflectPaint)
             canvas.drawCircle(cx, cy, innerOuterRadius, innerOuterPaint)
             canvas.drawCircle(cx, cy, innerInnerRadius, innerInnerPaint)
+            val drawX = cx - nBitmapHalfWidth
+            val drawY = cy - nBitmapHalfHeight
             if (Const.VIEW_DEBUG) {
-                points.add(Point(bcx.toInt(), bcy.toInt()))
+                points.add(Point(cx.toInt(), cy.toInt()))
                 if (points.size > 300) {
                     points.removeAt(0)
                 }
             }
-            if (rIncrease) {
-                degree += 0.1f
-                if (degree >= rBoundary) {
-                    rIncrease = false
-                }
-            } else {
-                degree -= 0.1f
-                if (degree <= -rBoundary) {
-                    rIncrease = true
-                }
-            }
-            update()
-            canvas.rotate(degree, bcx, bcy)
-            if (Const.VIEW_DEBUG) {
-                canvas.drawCircle(bcx, bcy, nBitmapHalfWidth, debugCirclePaint)
-            }
-            if (appearFlag) {
-                msgPaint.alpha = alphaValueTable[alphaIndex]
-                alphaIndex++
-                canvas.scale(
-                    scaleValueTable[scaleIndex],
-                    scaleValueTable[scaleIndex],
-                    bcx,
-                    bcy,
-                )
-                scaleIndex++
-                if (alphaIndex >= alphaValueTable.size) {
-                    appearFlag = false
+            resized?.let { bmp ->
+                if (appearFlag && alphaIndex < alphaValueTable.size) {
+                    msgPaint.alpha = alphaValueTable[alphaIndex]
+                    alphaIndex++
+                    canvas.save()
+                    val sc = scaleValueTable[scaleIndex.coerceAtMost(scaleValueTable.size - 1)]
+                    if (scaleIndex < scaleValueTable.size) {
+                        scaleIndex++
+                    }
+                    canvas.scale(sc, sc, cx, cy)
+                    canvas.drawBitmap(bmp, drawX, drawY, msgPaint)
+                    canvas.restore()
+                    if (alphaIndex >= alphaValueTable.size) {
+                        appearFlag = false
+                        msgPaint.alpha = 255
+                    }
+                } else {
+                    msgPaint.alpha = 255
+                    canvas.drawBitmap(bmp, drawX, drawY, msgPaint)
                 }
             }
-            resized?.let { canvas.drawBitmap(it, x, y, msgPaint) }
             if (Const.VIEW_DEBUG) {
-                canvas.drawCircle(bcx, bcy, 10f, debugCenterTracePaint)
-                canvas.drawCircle(cx, cy, cxcyBoundaryRadius, debugPaint)
-            }
-            canvas.rotate(-degree, bcx, bcy)
-            if (Const.VIEW_DEBUG) {
+                canvas.drawCircle(cx, cy, nBitmapHalfWidth, debugCirclePaint)
                 canvas.drawRect(
                     (widthPx - touchArea).toFloat(),
                     0f,
                     widthPx.toFloat(),
                     touchArea.toFloat(),
                     debugPaint,
-                )
-                canvas.drawText("mSensorX : $mSensorX", 50f, 100f, debugTextPaint)
-                canvas.drawText("mSensorY : $mSensorY", 50f, 150f, debugTextPaint)
-                canvas.drawText("mSensorZ : $mSensorY", 50f, 200f, debugTextPaint)
-                canvas.drawText("x : $x", 50f, 250f, debugTextPaint)
-                canvas.drawText(", y : $y", 400f, 250f, debugTextPaint)
-                canvas.drawText("bcx : $bcx", 50f, 300f, debugTextPaint)
-                canvas.drawText(", bcy : $bcy", 400f, 300f, debugTextPaint)
-                canvas.drawText("bcxCon : $bcxCon", 50f, 350f, debugTextPaint)
-                canvas.drawText(", bcyCon : $bcyCon", 400f, 350f, debugTextPaint)
-                canvas.drawText(
-                    "isBoundaryOut : $isBoundaryOut, cx : $cx, cy : $cy",
-                    50f,
-                    400f,
-                    debugTextPaint,
                 )
                 val length = points.size
                 var blue = 0
@@ -340,28 +283,6 @@ class MsgView
                 }
             }
             invalidate()
-        }
-
-        private fun update() {
-            val s = shaker ?: return
-            mSensorX = s.sx
-            mSensorY = s.sy
-            bcxCon += mSensorX
-            bcyCon -= mSensorY
-            if (bcxCon * bcxCon + bcyCon * bcyCon >= cxcyBoundaryRadiusSquare) {
-                isBoundaryOut = true
-                if (bcxCon != 0f && bcyCon != 0f) {
-                    radian = atan2(bcyCon.toDouble(), bcxCon.toDouble()).toFloat()
-                }
-                bcxCon = (cos(radian.toDouble()) * cxcyBoundaryRadius).toFloat()
-                bcyCon = (sin(radian.toDouble()) * cxcyBoundaryRadius).toFloat()
-            } else {
-                isBoundaryOut = false
-            }
-            bcx = bcxCon + cx
-            bcy = bcyCon + cy
-            x = bcx - nBitmapHalfWidth
-            y = bcy - nBitmapHalfHeight
         }
 
         private fun setNewMsg(index: Int) {

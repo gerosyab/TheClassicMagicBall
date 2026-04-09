@@ -11,6 +11,9 @@
     <!-- 48dp * 1.2 -->
     <dimen name="magic_circle_button_size">58dp</dimen>
     <dimen name="magic_circle_button_padding">12dp</dimen>
-    <!-- Reserve same vertical slot as secondary TextSwitcher (20sp line + margins) -->
+    <!-- Fixed row for secondary line (BORING etc.) — same Main/Msg -->
     <dimen name="magic_secondary_text_block_height">44dp</dimen>
+    <!-- Pill row: matches circle buttons so Main pill == Msg bar height -->
+    <dimen name="magic_pill_row_height">58dp</dimen>
+    <dimen name="magic_pill_to_secondary_gap">8dp</dimen>
 </resources>

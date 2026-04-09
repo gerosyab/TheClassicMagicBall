@@ -6,6 +6,7 @@ package net.gerosyab.magicball.ui
 
 import android.content.ContentValues
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
@@ -15,10 +16,12 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.text.SpannableString
 import android.text.util.Linkify
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.PixelCopy
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -40,12 +43,28 @@ class MsgFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var hintTimer: Timer? = null
-    private var hintTick = -1
+    private var bottomTimer: Timer? = null
+    private var tickSecond = -1
     private var hintStep = 0
+    private var secondaryIdx = -1
+    private var secondaryBlank = true
 
     private val tabletScale: Float
         get() = arguments?.getFloat(ARG_TABLET_SCALE) ?: 1f
+
+    private val secondaryMessages: Array<String> by lazy {
+        arrayOf(
+            getString(R.string.msg_miss_me),
+            getString(R.string.msg_boring),
+            getString(R.string.msg_ask_me),
+            getString(R.string.msg_and),
+            getString(R.string.msg_find_answer),
+            getString(R.string.msg_but),
+            getString(R.string.msg_do_not_trust),
+            getString(R.string.msg_might_be_wrong),
+            getString(R.string.msg_sometimes),
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,6 +83,19 @@ class MsgFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.msgview.tabletScaleFactor = tabletScale
         binding.msgview.setMsgIdx(MyRandom.getNum())
+
+        val ctx = requireContext()
+        val fadeIn = AnimationUtils.loadAnimation(ctx, android.R.anim.fade_in)
+        val fadeOut = AnimationUtils.loadAnimation(ctx, android.R.anim.fade_out)
+        binding.secondaryTextSwitcher.setFactory {
+            TextView(ctx).apply {
+                gravity = Gravity.CENTER
+                textSize = 20f
+                setTextColor(Color.WHITE)
+            }
+        }
+        binding.secondaryTextSwitcher.inAnimation = fadeIn
+        binding.secondaryTextSwitcher.outAnimation = fadeOut
 
         binding.infoText.setOnClickListener { showInfoDialog() }
 
@@ -108,14 +140,14 @@ class MsgFragment : Fragment() {
         dialog.findViewById<TextView>(android.R.id.message)?.textSize = 14f
     }
 
-    private fun startHintTimer() {
-        hintTimer?.cancel()
-        hintTimer =
+    private fun startBottomTimer() {
+        bottomTimer?.cancel()
+        bottomTimer =
             Timer().apply {
                 scheduleAtFixedRate(
                     object : TimerTask() {
                         override fun run() {
-                            mainHandler.post { onHintTick() }
+                            mainHandler.post { onBottomTick() }
                         }
                     },
                     0L,
@@ -124,24 +156,36 @@ class MsgFragment : Fragment() {
             }
     }
 
-    private fun onHintTick() {
-        hintTick++
-        if (hintTick % 2 != 0) return
-        hintStep = (hintStep + 1) % HintRotation.PHASE_COUNT
-        _binding?.buttonHintCenter?.text = HintRotation.label(requireContext(), hintStep)
+    private fun onBottomTick() {
+        tickSecond++
+        if (tickSecond % 2 == 0) {
+            hintStep = (hintStep + 1) % HintRotation.PHASE_COUNT
+            _binding?.buttonHintCenter?.text = HintRotation.label(requireContext(), hintStep)
+        }
+        if (tickSecond % 4 == 3 && !secondaryBlank) {
+            secondaryBlank = true
+            _binding?.secondaryTextSwitcher?.setText("")
+        } else if (tickSecond % 4 == 0 && secondaryBlank) {
+            secondaryBlank = false
+            secondaryIdx = (secondaryIdx + 1) % secondaryMessages.size
+            _binding?.secondaryTextSwitcher?.setText(secondaryMessages[secondaryIdx])
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        hintTick = -1
+        tickSecond = -1
         hintStep = 0
+        secondaryIdx = -1
+        secondaryBlank = true
         binding.buttonHintCenter.text = HintRotation.label(requireContext(), 0)
-        startHintTimer()
+        binding.secondaryTextSwitcher.setText("")
+        startBottomTimer()
     }
 
     override fun onPause() {
-        hintTimer?.cancel()
-        hintTimer = null
+        bottomTimer?.cancel()
+        bottomTimer = null
         super.onPause()
     }
 
@@ -244,8 +288,8 @@ class MsgFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        hintTimer?.cancel()
-        hintTimer = null
+        bottomTimer?.cancel()
+        bottomTimer = null
         _binding = null
         super.onDestroyView()
     }

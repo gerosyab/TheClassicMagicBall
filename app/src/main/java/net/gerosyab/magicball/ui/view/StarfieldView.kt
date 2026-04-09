@@ -9,10 +9,12 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import androidx.core.content.ContextCompat
 import android.view.Choreographer
 import android.view.View
 import kotlin.math.sin
 import kotlin.random.Random
+import net.gerosyab.magicball.R
 
 /**
  * Night-sky star layer: random positions/sizes, each twinkles on its own period and phase.
@@ -25,9 +27,9 @@ class StarfieldView
         defStyleAttr: Int = 0,
     ) : View(context, attrs, defStyleAttr) {
         private val bgPaint =
-            Paint().apply {
-                color = Color.parseColor("#004271")
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.FILL
+                color = ContextCompat.getColor(context, R.color.background)
             }
         private val starPaint =
             Paint().apply {
@@ -64,14 +66,14 @@ class StarfieldView
             super.onSizeChanged(w, h, oldw, oldh)
             if (w <= 0 || h <= 0) return
             val area = w * h
-            val count = (area / 9000).coerceIn(60, 160)
+            val count = (area / 5200).coerceIn(100, 260)
             val rnd = Random(w * 1000 + h)
             stars =
                 Array(count) {
                     Star(
                         x = rnd.nextFloat() * w,
                         y = rnd.nextFloat() * h,
-                        radius = rnd.nextFloat() * 1.8f + 0.6f,
+                        radius = rnd.nextFloat() * 2.6f + 0.7f,
                         phase = rnd.nextFloat() * (Math.PI * 2).toFloat(),
                         periodNs = (rnd.nextLong(2_000_000_000L, 8_000_000_000L)),
                         minAlpha = rnd.nextInt(40, 100),

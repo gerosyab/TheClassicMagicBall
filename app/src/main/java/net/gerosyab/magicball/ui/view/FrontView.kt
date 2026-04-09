@@ -74,10 +74,11 @@ class FrontView
             if (w <= 0 || h <= 0) return
             cx = w / 2f
             cy = h / 2f - h * 0.1f
+            val minDim = min(w, h).toFloat()
             val maxDiamPx = resources.getDimension(R.dimen.magic_ball_max_diameter)
-            val radiusFromWidth = w * 0.4f
+            val radiusFromWidth = minDim * 0.4f
             val maxRadiusFromCap = maxDiamPx / 2f
-            val maxRadiusFromHeight = h * 0.38f
+            val maxRadiusFromHeight = minDim * 0.38f
             var r = min(min(radiusFromWidth, maxRadiusFromCap), maxRadiusFromHeight)
             val pct = resources.getInteger(R.integer.front_ball_radius_percent).coerceIn(70, 200)
             r *= pct / 100f
