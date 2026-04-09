@@ -27,7 +27,6 @@ class MainActivity :
     AppCompatActivity(),
     Shaker.Callback {
     private lateinit var binding: ActivityMainBinding
-    private var tabletLayout = false
     private var mBackKeyFlag = false
     private val handler = Handler(Looper.getMainLooper())
 
@@ -44,25 +43,9 @@ class MainActivity :
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        tabletLayout = resources.getBoolean(R.bool.is_tablet_layout)
-
-        if (tabletLayout) {
-            if (savedInstanceState == null) {
-                supportFragmentManager.commit {
-                    replace(R.id.main_fragment_container, MainFragment())
-                }
-                val msg = MsgFragment.newInstance(tabletScaleFactor = TABLET_MSG_SCALE)
-                supportFragmentManager.commit {
-                    replace(R.id.msg_side_container, msg)
-                }
-            }
-            (supportFragmentManager.findFragmentById(R.id.msg_side_container) as? MsgFragment)
-                ?.applyTabletScale(TABLET_MSG_SCALE)
-        } else {
-            if (savedInstanceState == null) {
-                supportFragmentManager.commit {
-                    replace(R.id.content_frame, MainFragment())
-                }
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                replace(R.id.content_frame, MainFragment())
             }
         }
     }
@@ -123,11 +106,6 @@ class MainActivity :
             "onShakingDetected backStack=" + supportFragmentManager.backStackEntryCount,
         )
         vibrateShort()
-        if (tabletLayout) {
-            (supportFragmentManager.findFragmentById(R.id.msg_side_container) as? MsgFragment)
-                ?.setNewMessage()
-            return
-        }
         if (supportFragmentManager.backStackEntryCount > 0) {
             (supportFragmentManager.findFragmentById(R.id.content_frame) as? MsgFragment)
                 ?.setNewMessage()
@@ -143,14 +121,8 @@ class MainActivity :
         onShakingDetected()
     }
 
-    /** Main screen pill: go to message screen (phone) or refresh answer (tablet). */
     fun openMsgFromPill() {
         vibrateShort()
-        if (tabletLayout) {
-            (supportFragmentManager.findFragmentById(R.id.msg_side_container) as? MsgFragment)
-                ?.setNewMessage()
-            return
-        }
         if (supportFragmentManager.backStackEntryCount > 0) {
             return
         }
@@ -189,8 +161,6 @@ class MainActivity :
     }
 
     companion object {
-        private const val TABLET_MSG_SCALE = 0.52f
-
         @Volatile
         @JvmField
         var shaker: Shaker? = null

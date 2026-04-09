@@ -23,7 +23,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
@@ -68,8 +67,6 @@ class MsgFragment : Fragment() {
 
         binding.infoText.setOnClickListener { showInfoDialog() }
 
-        val tablet = resources.getBoolean(R.bool.is_tablet_layout)
-        binding.buttonBack.isVisible = !tablet
         binding.buttonBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
@@ -79,11 +76,6 @@ class MsgFragment : Fragment() {
         binding.buttonHintCenter.setOnClickListener {
             setNewMessage()
         }
-    }
-
-    fun applyTabletScale(scale: Float) {
-        arguments = bundleOf(ARG_TABLET_SCALE to scale)
-        _binding?.msgview?.tabletScaleFactor = scale
     }
 
     fun setNewMessage() {
