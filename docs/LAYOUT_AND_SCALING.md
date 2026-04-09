@@ -47,11 +47,11 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 **Radius pipeline / 반지름 계산:**
 
 1. `minDim = min(w, h)` — allocated view width × height.  
-2. `maxRadiusCap = magic_ball_max_diameter / 2` (dp → px).  
-3. `r0 = min(minDim * 0.4f, maxRadiusCap, minDim * 0.38f)` → effectively often `min(minDim * 0.38f, maxRadiusCap)`.  
-4. `r1 = r0 * front_ball_radius_percent / 100` (clamped 70–200 in code).  
-5. `outerRadius = min(min(r1, maxRadiusCap), maxFit)` with `maxFit = min(w/2, h/2)` (final clamp no longer uses `minDim*0.38` so `front_ball_radius_percent` is not erased after scaling).  
-5. `outerRadius = min(min(r1, cap), maxFit)`, `maxFit = min(w/2, h/2)` (마지막에 `minDim×0.38` 재적용 제거).
+2. `maxRadiusCap = magic_ball_max_diameter / 2` (dp → px via `getDimension`).  
+3. `rBase = min(minDim * 0.4f, maxRadiusCap, minDim * 0.38f)` → usually `min(minDim * 0.38f, maxRadiusCap)` because `0.38 < 0.4`.  
+4. `rAfterPct = rBase * front_ball_radius_percent / 100` (integer clamped 70–200 in code).  
+5. **`outerRadius = min(rAfterPct, maxRadiusCap)`** — no `maxFit = min(w/2, h/2)`; the circle may extend past the view if `%` and cap allow (parents use `clipChildren=false` where needed).  
+   **폰에서 ~410px 같은 값:** `rBase`가 `minDim*0.38`과 `cap` 중 작은 쪽이고, 폰은 `magic_ball_max_diameter=6000dp`라 사실상 **cap 무시** → `rBase ≈ 0.38 * min(w,h)`. 예: `minDim≈1080`이면 `rBase≈410.4`, `front_pct=100`이면 `outerRadius≈410.4`. `%`를 올리면 `outerRadius`는 `rBase*(pct/100)`까지 커지다가 `maxRadiusCap`에 걸리면 멈춤.
 
 | Mode | `magic_ball_max_diameter` | `front_ball_radius_percent` |
 |------|---------------------------|-----------------------------|
@@ -74,22 +74,18 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 **Radius pipeline / 반지름 계산:**
 
 1. `minDim = min(w, h)`.
-2. `maxRadiusCap = magic_ball_max_diameter / 2`.
-3. `radiusFromWidth = minDim * 0.75f * tabletScaleFactor` (**1f** from `MainActivity`).
-4. `maxRadiusFromHeight` = if `swDp < 600`: **`w * 0.75f`**; if `swDp >= 600`: **`minDim * 0.42f`**.
-5. `r0 = min(radiusFromWidth, maxRadiusCap, maxRadiusFromHeight)`.
-6. `r1 = r0 * msg_ball_radius_percent / 100` (clamped 70–220).
-7. `outerRadius = min(min(r1, maxRadiusCap), maxFit)` where `maxFit = min(w/2, h/2)` so the circle stays inside the view.  
-   **Note:** Previously the code clamped again to `maxRadiusFromHeight`, which **cancelled** `msg_ball_radius_percent` whenever the height term was the bottleneck.  
-   **참고:** 예전에는 다시 `maxRadiusFromHeight`로 잘라서, 높이 한도가 걸릴 때 **`msg_ball_radius_percent`가 먹지 않는** 문제가 있었음.
+2. `radiusFromWidth = minDim * 0.75f * tabletScaleFactor` (**1f** from `MainActivity`).
+3. `maxRadiusFromHeight` = if `swDp < 600`: **`w * 0.75f`**; if `swDp >= 600`: **`minDim * 0.42f`**.
+4. **`rBase = min(radiusFromWidth, maxRadiusFromHeight)`** — **no** `magic_ball_max_diameter` in this path (Msg has no diameter cap).
+5. **`outerRadius = rBase * msg_ball_radius_percent / 100`** (clamped 70–220) — **no** `maxFit`, **no** final cap; ball can be larger than half the view (partial crop / overlap by design).
 
-| Mode | `magic_ball_max_diameter` | `msg_ball_radius_percent` | `maxRadiusFromHeight` |
-|------|---------------------------|----------------------------|------------------------|
-| Phone / 폰 | 6000dp | **100** — `values/integers.xml` | **`w * 0.75`** |
-| Tablet portrait / 태블릿 세로 | 440dp | **130** — `values-sw600dp/integers.xml` | **`minDim * 0.42`** |
-| Tablet landscape / 태블릿 가로 | 440dp | **110** — `values-sw600dp-land/integers.xml` | **`minDim * 0.42`** |
+| Mode | `msg_ball_radius_percent` | `maxRadiusFromHeight` |
+|------|---------------------------|------------------------|
+| Phone / 폰 | **100** — `values/integers.xml` | **`w * 0.75`** |
+| Tablet portrait / 태블릿 세로 | **130** — `values-sw600dp/integers.xml` | **`minDim * 0.42`** |
+| Tablet landscape / 태블릿 가로 | **110** — `values-sw600dp-land/integers.xml` | **`minDim * 0.42`** |
 
-**Tuning / 조정:** `msg_ball_radius_percent` in `values/integers.xml`, `values-sw600dp/integers.xml`, `values-sw600dp-land/integers.xml`; `magic_ball_max_diameter`; or coefficients in `MsgView.kt`.
+**Tuning / 조정:** `msg_ball_radius_percent` and coefficients in `MsgView.kt` (`0.75`, `0.42`, `tabletScaleFactor`).
 
 ---
 
@@ -104,7 +100,7 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 | `magic_footer_row_height` | Copyright row |
 | `main_bottom_block_padding` | Padding inside bottom chrome |
 | `ad_banner_slot_height` | Banner slot in `activity_main` |
-| `magic_ball_max_diameter` | Ball diameter cap — phone `values/dimens.xml`, tablet `values-sw600dp/dimens.xml` |
+| `magic_ball_max_diameter` | **FrontView only** — diameter cap; phone `values/dimens.xml` (6000dp ≈ uncapped), tablet `values-sw600dp/dimens.xml` (440dp) |
 
 **Note / 참고:** `magic_chrome_title_block_height` was removed; title height is width-driven (85%) + intrinsic aspect.  
 **참고:** `magic_chrome_title_block_height`는 제거됨. 타이틀 세로는 가로 85% + 비율 기반.
@@ -119,15 +115,10 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 
 ## 6. Debug logging / 디버그 로그
 
-Filter Logcat by tag **`MagicBallScale`** (level **Info**). Each `onSizeChanged` logs:  
-`swDp`, orientation, `w×h`, `minDim`, intermediate radii, **raw vs used** `front_ball_radius_percent` / `msg_ball_radius_percent`, `outerRadius`, **LIMITER**, and **headroom** (`headroom_pct_to_hit_cap` / `headroom_pct_to_hit_maxFit` = minimum percent at which `rAfterPct` would hit that ceiling).  
-If `LIMITER=maxFit`, a second line explains that raising `%` above `~maxFit/rBase*100` **cannot** grow `outerRadius`.  
-Logcat 필터 **`MagicBallScale`**. `LIMITER`·**headroom**·(maxFit일 때) **NOTE** 한 줄 추가.
-
-**Example / 예 (your logs):**  
-- Phone Msg: `rAfterPct=810` but `outerRadius=540` → `LIMITER=maxFit`; `w/2=540` caps the ball. Front stays at `410.4` (`LIMITER=rBase*percent`) so Msg **looks** larger.  
-- 폰 Msg: `rAfterPct=810`인데 `outerRadius=540` → **가로 절반**이 상한.  
-- Tablet Msg portrait: `rAfterPct=466.8` but `outerRadius=427.5=maxFit` → raising `msg_ball_radius_percent` past ~**91%** (`427.5/359.1*100`) does nothing until you widen the view or change the formula.
+Filter Logcat by tag **`MagicBallScale`** (level **Info**).  
+- **FrontView:** `LIMITER` is either `maxRadiusCap(...)` or `rBase*percent`; **headroom_pct_to_hit_cap** = percent at which `rAfterPct` would hit the diameter cap.  
+- **MsgView:** one line with `rBase`, `%`, `outerRadius` (no maxFit / no diameter cap).  
+Logcat 필터 **`MagicBallScale`**.
 
 ---
 
