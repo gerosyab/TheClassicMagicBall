@@ -50,7 +50,8 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 2. `maxRadiusCap = magic_ball_max_diameter / 2` (dp → px).  
 3. `r0 = min(minDim * 0.4f, maxRadiusCap, minDim * 0.38f)` → effectively often `min(minDim * 0.38f, maxRadiusCap)`.  
 4. `r1 = r0 * front_ball_radius_percent / 100` (clamped 70–200 in code).  
-5. `outerRadius = min(min(r1, maxRadiusCap), minDim * 0.38f)`.
+5. `outerRadius = min(min(r1, maxRadiusCap), maxFit)` with `maxFit = min(w/2, h/2)` (final clamp no longer uses `minDim*0.38` so `front_ball_radius_percent` is not erased after scaling).  
+5. `outerRadius = min(min(r1, cap), maxFit)`, `maxFit = min(w/2, h/2)` (마지막에 `minDim×0.38` 재적용 제거).
 
 | Mode | `magic_ball_max_diameter` | `front_ball_radius_percent` |
 |------|---------------------------|-----------------------------|
@@ -78,7 +79,9 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 4. `maxRadiusFromHeight` = if `swDp < 600`: **`w * 0.75f`**; if `swDp >= 600`: **`minDim * 0.42f`**.
 5. `r0 = min(radiusFromWidth, maxRadiusCap, maxRadiusFromHeight)`.
 6. `r1 = r0 * msg_ball_radius_percent / 100` (clamped 70–220).
-7. `outerRadius = min(min(r1, maxRadiusCap), maxRadiusFromHeight)`.
+7. `outerRadius = min(min(r1, maxRadiusCap), maxFit)` where `maxFit = min(w/2, h/2)` so the circle stays inside the view.  
+   **Note:** Previously the code clamped again to `maxRadiusFromHeight`, which **cancelled** `msg_ball_radius_percent` whenever the height term was the bottleneck.  
+   **참고:** 예전에는 다시 `maxRadiusFromHeight`로 잘라서, 높이 한도가 걸릴 때 **`msg_ball_radius_percent`가 먹지 않는** 문제가 있었음.
 
 | Mode | `magic_ball_max_diameter` | `msg_ball_radius_percent` | `maxRadiusFromHeight` |
 |------|---------------------------|----------------------------|------------------------|

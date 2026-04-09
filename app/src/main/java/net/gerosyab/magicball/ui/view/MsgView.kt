@@ -120,7 +120,10 @@ class MsgView
             var r = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
             val pct = resources.getInteger(R.integer.msg_ball_radius_percent).coerceIn(70, 220)
             r *= pct / 100f
-            outerRadius = min(min(r, maxRadiusCap), maxRadiusFromHeight)
+            // Do not clamp again to maxRadiusFromHeight — that erased the percent when height was the bottleneck.
+            // Fit inside the view: centered circle must satisfy r <= w/2 and r <= h/2.
+            val maxFit = min(w / 2f, h / 2f)
+            outerRadius = min(min(r, maxRadiusCap), maxFit)
             reflectRadius = outerRadius * 0.95f
             innerOuterRadius = outerRadius * 0.5f
             innerInnerRadius = outerRadius * 0.45f

@@ -83,7 +83,8 @@ class FrontView
             var r = min(min(radiusFromWidth, maxRadiusFromCap), maxRadiusFromHeight)
             val pct = resources.getInteger(R.integer.front_ball_radius_percent).coerceIn(70, 200)
             r *= pct / 100f
-            outerRadius = min(min(r, maxRadiusFromCap), maxRadiusFromHeight)
+            val maxFit = min(w / 2f, h / 2f)
+            outerRadius = min(min(r, maxRadiusFromCap), maxFit)
             reflectRadius = outerRadius * 0.95f
             innerRadius = outerRadius * 0.425f
             strokeWidth = innerRadius * 0.1f
