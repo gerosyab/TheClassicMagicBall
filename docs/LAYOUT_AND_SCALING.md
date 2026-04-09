@@ -120,8 +120,14 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 ## 6. Debug logging / 디버그 로그
 
 Filter Logcat by tag **`MagicBallScale`** (level **Info**). Each `onSizeChanged` logs:  
-`swDp`, orientation, `w×h`, `minDim`, intermediate radii, **raw vs used** `front_ball_radius_percent` / `msg_ball_radius_percent`, `outerRadius`, and **LIMITER** (`maxFit`, `maxRadiusCap`, or `rBase*percent`).  
-Logcat 필터 **`MagicBallScale`** (Info). `onSizeChanged`마다 swDp, 방향, 뷰 크기, 중간 반지름, **리소스 raw/적용 %**, 최종 `outerRadius`, **어느 한도에 걸렸는지(LIMITER)** 출력.
+`swDp`, orientation, `w×h`, `minDim`, intermediate radii, **raw vs used** `front_ball_radius_percent` / `msg_ball_radius_percent`, `outerRadius`, **LIMITER**, and **headroom** (`headroom_pct_to_hit_cap` / `headroom_pct_to_hit_maxFit` = minimum percent at which `rAfterPct` would hit that ceiling).  
+If `LIMITER=maxFit`, a second line explains that raising `%` above `~maxFit/rBase*100` **cannot** grow `outerRadius`.  
+Logcat 필터 **`MagicBallScale`**. `LIMITER`·**headroom**·(maxFit일 때) **NOTE** 한 줄 추가.
+
+**Example / 예 (your logs):**  
+- Phone Msg: `rAfterPct=810` but `outerRadius=540` → `LIMITER=maxFit`; `w/2=540` caps the ball. Front stays at `410.4` (`LIMITER=rBase*percent`) so Msg **looks** larger.  
+- 폰 Msg: `rAfterPct=810`인데 `outerRadius=540` → **가로 절반**이 상한.  
+- Tablet Msg portrait: `rAfterPct=466.8` but `outerRadius=427.5=maxFit` → raising `msg_ball_radius_percent` past ~**91%** (`427.5/359.1*100`) does nothing until you widen the view or change the formula.
 
 ---
 

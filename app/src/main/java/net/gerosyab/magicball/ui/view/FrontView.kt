@@ -101,13 +101,27 @@ class FrontView
                     outerRadius >= maxRadiusFromCap - 0.5f -> "maxRadiusCap(magic_ball_max_diameter/2)"
                     else -> "rBase*percent"
                 }
+            val headroomNote =
+                if (rBase > 0.5f) {
+                    val pctToHitCap = maxRadiusFromCap / rBase * 100f
+                    val pctToHitFit = maxFit / rBase * 100f
+                    " | headroom_pct_to_hit_cap=${"%.1f".format(pctToHitCap)} headroom_pct_to_hit_maxFit=${"%.1f".format(pctToHitFit)}"
+                } else {
+                    ""
+                }
             Log.i(
                 "MagicBallScale",
                 "FrontView | swDp=$swDp orient=$orient view=${w}x$h minDim=$minDim | " +
                     "radiusFromW(minDim*0.4)=$radiusFromWidth maxH(minDim*0.38)=$maxRadiusFromHeight " +
                     "cap=$maxRadiusFromCap | rBase=$rBase | front_pct raw=$pctRaw used=$pct -> rAfterPct=$r | " +
-                    "maxFit=$maxFit | outerRadius=$outerRadius LIMITER=$limiter",
+                    "maxFit=$maxFit | outerRadius=$outerRadius LIMITER=$limiter$headroomNote",
             )
+            if (limiter.startsWith("maxFit")) {
+                Log.i(
+                    "MagicBallScale",
+                    "FrontView NOTE: LIMITER=maxFit -> raising front_ball_radius_percent above ~${"%.0f".format(maxFit / rBase * 100f)}% does not increase outerRadius (rBase=${"%.1f".format(rBase)} maxFit=$maxFit).",
+                )
+            }
             reflectRadius = outerRadius * 0.95f
             innerRadius = outerRadius * 0.425f
             strokeWidth = innerRadius * 0.1f
