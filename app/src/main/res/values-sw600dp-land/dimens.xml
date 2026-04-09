@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Narrow center column in tablet landscape -->
+    <dimen name="magic_chrome_title_block_height">100dp</dimen>
+</resources>

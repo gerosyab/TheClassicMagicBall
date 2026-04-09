@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:clipChildren="false"
+    android:paddingTop="@dimen/screen_top_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/magic_chrome_title_block_height"
+            android:clickable="true"
+            android:focusable="false"
+            android:paddingTop="@dimen/title_top_margin">
+
+            <include layout="@layout/include_magic_title" />
+        </FrameLayout>
+
+        <net.gerosyab.magicball.ui.view.MsgView
+            android:id="@+id/msgview"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent" />
+
+        <LinearLayout
+            android:id="@+id/msg_bottom_stack"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/magic_bottom_chrome_height"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="false"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/main_bottom_block_padding">
+
+            <LinearLayout
+                android:id="@+id/msg_action_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/magic_pill_row_height"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/button_back"
+                    android:layout_width="@dimen/magic_circle_button_size"
+                    android:layout_height="@dimen/magic_circle_button_size"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/bg_magic_circle_yellow_red"
+                    android:contentDescription="@string/back"
+                    android:padding="@dimen/magic_circle_button_padding"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_arrow_back_magic" />
+
+                <TextView
+                    android:id="@+id/button_hint_center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_magic_pill_yellow_red"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minWidth="@dimen/magic_hint_pill_min_width"
+                    android:paddingStart="28dp"
+                    android:paddingEnd="28dp"
+                    android:textColor="@color/magic_red_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/button_capture"
+                    android:layout_width="@dimen/magic_circle_button_size"
+                    android:layout_height="@dimen/magic_circle_button_size"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/bg_magic_circle_yellow_red"
+                    android:contentDescription="@string/capture"
+                    android:padding="@dimen/magic_circle_button_padding"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_camera_magic" />
+            </LinearLayout>
+
+            <TextSwitcher
+                android:id="@+id/secondary_text_switcher"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/magic_secondary_text_block_height"
+                android:layout_marginStart="40dp"
+                android:layout_marginTop="@dimen/magic_pill_to_secondary_gap"
+                android:layout_marginEnd="40dp"
+                android:background="@android:color/transparent"
+                android:gravity="center_horizontal" />
+
+            <LinearLayout
+                android:id="@+id/msg_footer"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/magic_footer_row_height"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@android:color/transparent"
+                    android:gravity="center"
+                    android:text="@string/copyright"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/info_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@android:color/transparent"
+                    android:gravity="center"
+                    android:text="@string/information"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

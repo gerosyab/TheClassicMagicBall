@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Deterministic title: no ConstraintLayout percent / adjustViewBounds (avoids Main vs Msg measure drift on tablet). -->
+<!-- Title uses 85% of row width (7.5% margin each side). Same include for phone + tablet. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/title_banner"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="true"
-        android:focusable="false">
+        android:focusable="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="0.075" />
 
         <ImageView
             android:id="@+id/title_image"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="0.85"
             android:contentDescription="@string/app_name"
             android:scaleType="fitCenter"
             android:src="@drawable/title" />
-    </FrameLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="0.075" />
+    </LinearLayout>
 </merge>
