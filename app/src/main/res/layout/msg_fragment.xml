@@ -3,83 +3,98 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@android:color/transparent">
 
     <net.gerosyab.magicball.ui.view.MsgView
         android:id="@+id/msgview"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/background"
-        app:layout_constraintBottom_toTopOf="@+id/msg_footer"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@+id/msg_action_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
+        android:id="@+id/msg_action_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/msg_footer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/button_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_magic_circle_yellow_red"
+            android:contentDescription="@string/back"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_arrow_back_magic" />
+
+        <TextView
+            android:id="@+id/button_hint_center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_magic_pill_yellow_red"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center"
+            android:minHeight="48dp"
+            android:paddingStart="28dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="28dp"
+            android:paddingBottom="10dp"
+            android:textColor="@color/magic_red_dark"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/button_capture"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_magic_circle_yellow_red"
+            android:contentDescription="@string/capture"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_camera_magic" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/msg_footer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@android:color/transparent"
             android:gravity="center_horizontal"
-            android:orientation="horizontal">
+            android:text="@string/copyright"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:background="@android:color/transparent"
-                android:gravity="center_horizontal"
-                android:text="@string/copyright"
-                android:textColor="#FFFFFFFF"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/info_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:background="@android:color/transparent"
-                android:gravity="center_horizontal"
-                android:text="@string/information"
-                android:textColor="#FFFFFFFF"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/msg_bottom_bar"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/info_text"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="8dp">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_back"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:text="@string/back"
-                android:textColor="@android:color/white"
-                app:strokeColor="@android:color/white" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_capture"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/capture"
-                android:textColor="@android:color/white"
-                app:strokeColor="@android:color/white" />
-        </LinearLayout>
+            android:layout_margin="10dp"
+            android:background="@android:color/transparent"
+            android:gravity="center_horizontal"
+            android:text="@string/information"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

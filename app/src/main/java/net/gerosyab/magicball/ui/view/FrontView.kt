@@ -8,6 +8,8 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.PixelFormat
+import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.SurfaceHolder
@@ -44,7 +46,10 @@ class FrontView
         private val characterPaint = Paint()
 
         init {
+            setZOrderOnTop(true)
+            holder.setFormat(PixelFormat.TRANSLUCENT)
             holder.addCallback(this)
+            setWillNotDraw(false)
         }
 
         val radius: Float
@@ -52,6 +57,7 @@ class FrontView
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
             canvas.drawCircle(cx, cy, outerRadius, blackPaint)
             canvas.drawCircle(cx, cy, innerRadius, whitePaint)
             canvas.drawCircle(cx, cy - charcterRadius1, charcterRadius1, characterPaint)

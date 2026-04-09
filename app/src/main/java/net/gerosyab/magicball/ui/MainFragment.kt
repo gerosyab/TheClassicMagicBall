@@ -16,7 +16,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.widget.TextSwitcher
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -74,14 +73,9 @@ class MainFragment : Fragment() {
         val fadeIn = AnimationUtils.loadAnimation(ctx, android.R.anim.fade_in)
         val fadeOut = AnimationUtils.loadAnimation(ctx, android.R.anim.fade_out)
 
-        binding.hintTextSwitcher.setFactory {
-            makeSwitcherTextView(ctx)
-        }
         binding.secondaryTextSwitcher.setFactory {
-            makeSwitcherTextView(ctx)
+            makeSecondaryTextView(ctx)
         }
-        binding.hintTextSwitcher.inAnimation = fadeIn
-        binding.hintTextSwitcher.outAnimation = fadeOut
         binding.secondaryTextSwitcher.inAnimation = fadeIn
         binding.secondaryTextSwitcher.outAnimation = fadeOut
 
@@ -108,7 +102,7 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun makeSwitcherTextView(ctx: android.content.Context): TextView {
+    private fun makeSecondaryTextView(ctx: android.content.Context): TextView {
         return TextView(ctx).apply {
             gravity = Gravity.CENTER
             textSize = 20f
@@ -176,7 +170,7 @@ class MainFragment : Fragment() {
                 } else {
                     getString(R.string.hint_touch_me)
                 }
-            binding.hintTextSwitcher.setText(hint)
+            binding.hintActionButton.text = hint
         }
         if (tickSecond % 4 == 3 && !secondaryBlank) {
             secondaryBlank = true
@@ -206,7 +200,7 @@ class MainFragment : Fragment() {
         hintPhase = 0
         secondaryIdx = -1
         secondaryBlank = true
-        binding.hintTextSwitcher.setText("")
+        binding.hintActionButton.text = ""
         binding.secondaryTextSwitcher.setText("")
         startTimer()
     }
@@ -223,5 +217,4 @@ class MainFragment : Fragment() {
         _binding = null
         super.onDestroyView()
     }
-
 }

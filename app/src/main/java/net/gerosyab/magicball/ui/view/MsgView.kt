@@ -12,6 +12,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Point
+import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -117,7 +118,10 @@ class MsgView
 
         init {
             if (!isInEditMode) {
+                setZOrderOnTop(true)
+                holder.setFormat(PixelFormat.TRANSLUCENT)
                 holder.addCallback(this)
+                setWillNotDraw(false)
             }
         }
 
@@ -147,6 +151,7 @@ class MsgView
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
             if (isInEditMode) return
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
             canvas.drawCircle(cx, cy, outerRadius, blackPaint)
             if (reflectionIncrease) {
                 reflectionDegree += 0.1f

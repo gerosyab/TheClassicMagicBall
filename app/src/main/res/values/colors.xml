@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#004271</color>
     <color name="colorAccent">#0090F6</color>
     <color name="background">#004271</color>
+    <color name="magic_yellow">#FFEB3B</color>
+    <color name="magic_red">#C62828</color>
+    <color name="magic_red_dark">#B71C1C</color>
 </resources>

@@ -30,6 +30,8 @@ import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Timer
+import java.util.TimerTask
 import net.gerosyab.magicball.R
 import net.gerosyab.magicball.databinding.MsgFragmentBinding
 import net.gerosyab.magicball.util.MyLog
@@ -40,6 +42,9 @@ class MsgFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var hintTimer: Timer? = null
+    private var hintTick = -1
+    private var hintPhase = 0
 
     private val tabletScale: Float
         get() = arguments?.getFloat(ARG_TABLET_SCALE) ?: 1f
@@ -108,6 +113,49 @@ class MsgFragment : Fragment() {
                 .create()
         dialog.show()
         dialog.findViewById<TextView>(android.R.id.message)?.textSize = 14f
+    }
+
+    private fun startHintTimer() {
+        hintTimer?.cancel()
+        hintTimer =
+            Timer().apply {
+                scheduleAtFixedRate(
+                    object : TimerTask() {
+                        override fun run() {
+                            mainHandler.post { onHintTick() }
+                        }
+                    },
+                    0L,
+                    1000L,
+                )
+            }
+    }
+
+    private fun onHintTick() {
+        hintTick++
+        if (hintTick % 2 != 0) return
+        hintPhase = (hintPhase + 1) % 2
+        val text =
+            if (hintPhase == 0) {
+                getString(R.string.hint_shake_me)
+            } else {
+                getString(R.string.hint_touch_me)
+            }
+        _binding?.buttonHintCenter?.text = text
+    }
+
+    override fun onResume() {
+        super.onResume()
+        hintTick = -1
+        hintPhase = 0
+        binding.buttonHintCenter.text = getString(R.string.hint_shake_me)
+        startHintTimer()
+    }
+
+    override fun onPause() {
+        hintTimer?.cancel()
+        hintTimer = null
+        super.onPause()
     }
 
     private fun captureMsgArea() {
@@ -209,6 +257,8 @@ class MsgFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        hintTimer?.cancel()
+        hintTimer = null
         _binding = null
         super.onDestroyView()
     }
