@@ -110,7 +110,13 @@ class MsgView
             val maxDiamPx = resources.getDimension(R.dimen.magic_ball_max_diameter)
             val maxRadiusCap = maxDiamPx / 2f
             val radiusFromWidth = minDim * 0.75f * scale
-            val maxRadiusFromHeight = minDim * 0.42f
+            val swDp = resources.configuration.smallestScreenWidthDp
+            val maxRadiusFromHeight =
+                if (swDp >= 600) {
+                    minDim * 0.42f
+                } else {
+                    w * 0.75f
+                }
             var r = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
             val pct = resources.getInteger(R.integer.msg_ball_radius_percent).coerceIn(70, 220)
             r *= pct / 100f
