@@ -20,6 +20,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import net.gerosyab.magicball.R
 import net.gerosyab.magicball.data.Const
 import net.gerosyab.magicball.ui.MainActivity
 import net.gerosyab.magicball.util.MyLog
