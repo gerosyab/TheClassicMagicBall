@@ -19,16 +19,22 @@
             android:id="@+id/content_frame"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:paddingBottom="@dimen/content_above_ad_padding" />
+            android:layout_weight="1" />
 
-        <com.google.android.gms.ads.AdView
-            android:id="@+id/adView"
+        <FrameLayout
+            android:id="@+id/ad_banner_slot"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="#FF000000"
-            ads:adSize="BANNER"
-            ads:adUnitId="@string/admob_banner_ad_unit_id" />
+            android:layout_height="@dimen/ad_banner_slot_height"
+            android:background="@android:color/transparent">
+
+            <com.google.android.gms.ads.AdView
+                android:id="@+id/adView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@android:color/transparent"
+                ads:adSize="BANNER"
+                ads:adUnitId="@string/admob_banner_ad_unit_id" />
+        </FrameLayout>
     </LinearLayout>
 </FrameLayout>

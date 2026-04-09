@@ -5,17 +5,20 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/title_banner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/title_top_margin">
+        android:layout_height="@dimen/title_banner_height"
+        android:layout_marginTop="@dimen/title_top_margin"
+        android:clickable="true"
+        android:focusable="false">
 
         <ImageView
             android:id="@+id/title_image"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/app_name"
             android:scaleType="fitCenter"
             android:src="@drawable/title"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"

@@ -1,25 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/transparent"
-    android:orientation="vertical"
+    android:clipChildren="false"
     android:paddingTop="@dimen/screen_top_padding">
-
-    <include layout="@layout/include_magic_title" />
 
     <net.gerosyab.magicball.ui.view.MsgView
         android:id="@+id/msgview"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:background="@android:color/transparent" />
+
+    <include
+        layout="@layout/include_magic_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal" />
 
     <LinearLayout
         android:id="@+id/msg_bottom_stack"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
         android:background="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="false"
         android:orientation="vertical"
         android:paddingBottom="@dimen/main_bottom_block_padding">
 
@@ -108,4 +114,4 @@
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

@@ -16,4 +16,8 @@
     <!-- Pill row: matches circle buttons so Main pill == Msg bar height -->
     <dimen name="magic_pill_row_height">58dp</dimen>
     <dimen name="magic_pill_to_secondary_gap">8dp</dimen>
+    <!-- Reserve before AdMob loads (BANNER ~50dp); slot shows starfield through transparent frame -->
+    <dimen name="ad_banner_slot_height">50dp</dimen>
+    <!-- Fixed title strip so Main/Msg/tablet don’t resize the banner -->
+    <dimen name="title_banner_height">80dp</dimen>
 </resources>
