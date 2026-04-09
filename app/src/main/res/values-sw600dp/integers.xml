@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet: front (main) ball larger; msg ball larger still -->
+    <integer name="front_ball_radius_percent">115</integer>
+    <integer name="msg_ball_radius_percent">132</integer>
+</resources>

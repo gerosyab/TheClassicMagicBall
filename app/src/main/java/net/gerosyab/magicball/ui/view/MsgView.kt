@@ -132,7 +132,10 @@ class MsgView
             val maxRadiusCap = maxDiamPx / 2f
             val radiusFromWidth = w * 0.75f * scale
             val maxRadiusFromHeight = h * 0.42f
-            outerRadius = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
+            var r = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
+            val pct = resources.getInteger(R.integer.msg_ball_radius_percent).coerceIn(70, 220)
+            r *= pct / 100f
+            outerRadius = min(min(r, maxRadiusCap), maxRadiusFromHeight)
             reflectRadius = outerRadius * 0.95f
             innerOuterRadius = outerRadius * 0.5f
             innerInnerRadius = outerRadius * 0.45f

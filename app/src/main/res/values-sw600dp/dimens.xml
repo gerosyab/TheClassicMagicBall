@@ -1,3 +1,4 @@
 <resources>
-    <dimen name="magic_ball_max_diameter">320dp</dimen>
+    <!-- Wider cap so tablet % scaling is not clipped too early -->
+    <dimen name="magic_ball_max_diameter">440dp</dimen>
 </resources>

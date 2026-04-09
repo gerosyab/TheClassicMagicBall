@@ -11,4 +11,6 @@
     <!-- 48dp * 1.2 -->
     <dimen name="magic_circle_button_size">58dp</dimen>
     <dimen name="magic_circle_button_padding">12dp</dimen>
+    <!-- Reserve same vertical slot as secondary TextSwitcher (20sp line + margins) -->
+    <dimen name="magic_secondary_text_block_height">44dp</dimen>
 </resources>
