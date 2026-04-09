@@ -117,5 +117,13 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 
 ---
 
+## 6. Debug logging / 디버그 로그
+
+Filter Logcat by tag **`MagicBallScale`** (level **Info**). Each `onSizeChanged` logs:  
+`swDp`, orientation, `w×h`, `minDim`, intermediate radii, **raw vs used** `front_ball_radius_percent` / `msg_ball_radius_percent`, `outerRadius`, and **LIMITER** (`maxFit`, `maxRadiusCap`, or `rBase*percent`).  
+Logcat 필터 **`MagicBallScale`** (Info). `onSizeChanged`마다 swDp, 방향, 뷰 크기, 중간 반지름, **리소스 raw/적용 %**, 최종 `outerRadius`, **어느 한도에 걸렸는지(LIMITER)** 출력.
+
+---
+
 *Title: 85% width, intrinsic height. Msg ball %: tablet portrait 130, tablet landscape 110.*  
 *타이틀: 가로 85%, 세로 intrinsic. Msg 볼 %: 태블릿 세로 130, 가로 110.*

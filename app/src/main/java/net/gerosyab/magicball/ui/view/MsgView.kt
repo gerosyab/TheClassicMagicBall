@@ -12,7 +12,9 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.RectF
+import android.content.res.Configuration
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import java.util.ArrayList
@@ -117,13 +119,31 @@ class MsgView
                 } else {
                     w * 0.75f
                 }
-            var r = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
-            val pct = resources.getInteger(R.integer.msg_ball_radius_percent).coerceIn(70, 220)
-            r *= pct / 100f
-            // Do not clamp again to maxRadiusFromHeight — that erased the percent when height was the bottleneck.
-            // Fit inside the view: centered circle must satisfy r <= w/2 and r <= h/2.
+            val rBase = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
+            val pctRaw = resources.getInteger(R.integer.msg_ball_radius_percent)
+            val pct = pctRaw.coerceIn(70, 220)
+            var r = rBase * (pct / 100f)
             val maxFit = min(w / 2f, h / 2f)
             outerRadius = min(min(r, maxRadiusCap), maxFit)
+            val orient =
+                when (resources.configuration.orientation) {
+                    Configuration.ORIENTATION_LANDSCAPE -> "landscape"
+                    Configuration.ORIENTATION_PORTRAIT -> "portrait"
+                    else -> "other(${resources.configuration.orientation})"
+                }
+            val limiter =
+                when {
+                    outerRadius >= maxFit - 0.5f -> "maxFit=min(w/2,h/2)"
+                    outerRadius >= maxRadiusCap - 0.5f -> "maxRadiusCap(magic_ball_max_diameter/2)"
+                    else -> "rBase*percent"
+                }
+            Log.i(
+                "MagicBallScale",
+                "MsgView | swDp=$swDp orient=$orient view=${w}x$h minDim=$minDim | " +
+                    "radiusFromW(minDim*0.75*scale)=$radiusFromWidth maxH=${if (swDp >= 600) "minDim*0.42=$maxRadiusFromHeight" else "w*0.75=$maxRadiusFromHeight"} " +
+                    "cap=$maxRadiusCap tabletScale=$scale | rBase=$rBase | msg_pct raw=$pctRaw used=$pct -> rAfterPct=$r | " +
+                    "maxFit=$maxFit | outerRadius=$outerRadius LIMITER=$limiter",
+            )
             reflectRadius = outerRadius * 0.95f
             innerOuterRadius = outerRadius * 0.5f
             innerInnerRadius = outerRadius * 0.45f

@@ -10,7 +10,9 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.content.res.Configuration
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import kotlin.math.min
@@ -80,11 +82,32 @@ class FrontView
             val radiusFromWidth = minDim * 0.4f
             val maxRadiusFromCap = maxDiamPx / 2f
             val maxRadiusFromHeight = minDim * 0.38f
-            var r = min(min(radiusFromWidth, maxRadiusFromCap), maxRadiusFromHeight)
-            val pct = resources.getInteger(R.integer.front_ball_radius_percent).coerceIn(70, 200)
-            r *= pct / 100f
+            val rBase = min(min(radiusFromWidth, maxRadiusFromCap), maxRadiusFromHeight)
+            val pctRaw = resources.getInteger(R.integer.front_ball_radius_percent)
+            val pct = pctRaw.coerceIn(70, 200)
+            var r = rBase * (pct / 100f)
             val maxFit = min(w / 2f, h / 2f)
             outerRadius = min(min(r, maxRadiusFromCap), maxFit)
+            val swDp = resources.configuration.smallestScreenWidthDp
+            val orient =
+                when (resources.configuration.orientation) {
+                    Configuration.ORIENTATION_LANDSCAPE -> "landscape"
+                    Configuration.ORIENTATION_PORTRAIT -> "portrait"
+                    else -> "other(${resources.configuration.orientation})"
+                }
+            val limiter =
+                when {
+                    outerRadius >= maxFit - 0.5f -> "maxFit=min(w/2,h/2)"
+                    outerRadius >= maxRadiusFromCap - 0.5f -> "maxRadiusCap(magic_ball_max_diameter/2)"
+                    else -> "rBase*percent"
+                }
+            Log.i(
+                "MagicBallScale",
+                "FrontView | swDp=$swDp orient=$orient view=${w}x$h minDim=$minDim | " +
+                    "radiusFromW(minDim*0.4)=$radiusFromWidth maxH(minDim*0.38)=$maxRadiusFromHeight " +
+                    "cap=$maxRadiusFromCap | rBase=$rBase | front_pct raw=$pctRaw used=$pct -> rAfterPct=$r | " +
+                    "maxFit=$maxFit | outerRadius=$outerRadius LIMITER=$limiter",
+            )
             reflectRadius = outerRadius * 0.95f
             innerRadius = outerRadius * 0.425f
             strokeWidth = innerRadius * 0.1f
