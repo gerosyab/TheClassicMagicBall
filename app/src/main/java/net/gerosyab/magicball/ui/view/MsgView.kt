@@ -138,8 +138,9 @@ class MsgView
             innerInnerRadius = outerRadius * 0.45f
             cxcyBoundaryRadius = innerInnerRadius * 0.2f
             cxcyBoundaryRadiusSquare = cxcyBoundaryRadius * cxcyBoundaryRadius
-            nMsgTriangleWidth = innerOuterRadius * 1.2f
-            nMsgTriangleHeight = innerOuterRadius * 1.2f
+            // Message bitmap (triangle art) side length: was innerOuterRadius * 1.2f; +20% → *1.44f
+            nMsgTriangleWidth = innerOuterRadius * 1.44f
+            nMsgTriangleHeight = innerOuterRadius * 1.44f
             nBitmapHalfWidth = nMsgTriangleWidth / 2f
             nBitmapHalfHeight = nMsgTriangleHeight / 2f
             cx = w / 2f

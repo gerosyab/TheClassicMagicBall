@@ -28,7 +28,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintWidth_default="percent"
-                app:layout_constraintWidth_percent="1.0" />
+                app:layout_constraintWidth_percent="0.75" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <net.gerosyab.magicball.ui.view.FrontView

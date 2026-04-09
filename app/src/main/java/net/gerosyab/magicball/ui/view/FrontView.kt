@@ -97,8 +97,8 @@ class FrontView
             whitePaint.color = Color.WHITE
             whitePaint.isAntiAlias = true
             ensureTypeface()
-            // Text size from inner white circle radius (was innerRadius * 1.05f; ~1.3× larger digit)
-            eightPaint.textSize = innerRadius * 1.05f * 1.3f
+            // Text size from inner white circle radius (base 1.05 × innerRadius, then ×1.4 vs original stroke-8)
+            eightPaint.textSize = innerRadius * 1.05f * 1.4f
         }
 
         override fun onDraw(canvas: Canvas) {
