@@ -12,20 +12,26 @@
         android:layout_height="match_parent"
         android:background="@android:color/transparent" />
 
-    <include
-        layout="@layout/include_magic_title"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal" />
+        android:layout_height="@dimen/magic_chrome_title_block_height"
+        android:layout_gravity="top|center_horizontal"
+        android:clickable="true"
+        android:focusable="false"
+        android:paddingTop="@dimen/title_top_margin">
+
+        <include layout="@layout/include_magic_title" />
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/msg_bottom_stack"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/magic_bottom_chrome_height"
         android:layout_gravity="bottom|center_horizontal"
         android:background="@android:color/transparent"
         android:clickable="true"
         android:focusable="false"
+        android:gravity="bottom"
         android:orientation="vertical"
         android:paddingBottom="@dimen/main_bottom_block_padding">
 
@@ -88,16 +94,17 @@
         <LinearLayout
             android:id="@+id/msg_footer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:layout_height="@dimen/magic_footer_row_height"
+            android:gravity="center"
             android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="4dp"
                 android:background="@android:color/transparent"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:text="@string/copyright"
                 android:textColor="#FFFFFFFF"
                 android:textSize="12sp" />
@@ -106,9 +113,10 @@
                 android:id="@+id/info_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="10dp"
                 android:background="@android:color/transparent"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:text="@string/information"
                 android:textColor="#FFFFFFFF"
                 android:textSize="12sp" />

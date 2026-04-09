@@ -73,7 +73,8 @@ class FrontView
             viewHeight = h
             if (w <= 0 || h <= 0) return
             cx = w / 2f
-            cy = h / 2f - h * 0.1f
+            // Geometric center (was h/2 - 0.1*h which shifted ball upward by 10% of view height)
+            cy = h / 2f
             val minDim = min(w, h).toFloat()
             val maxDiamPx = resources.getDimension(R.dimen.magic_ball_max_diameter)
             val radiusFromWidth = minDim * 0.4f
