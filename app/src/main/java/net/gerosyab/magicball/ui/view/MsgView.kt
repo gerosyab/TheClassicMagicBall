@@ -10,17 +10,15 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PixelFormat
 import android.graphics.Point
-import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.view.SurfaceHolder
-import android.view.SurfaceView
+import android.view.View
 import java.util.ArrayList
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 import net.gerosyab.magicball.data.Const
 import net.gerosyab.magicball.ui.MainActivity
@@ -32,8 +30,7 @@ class MsgView
         context: Context,
         attrs: AttributeSet? = null,
         defStyle: Int = 0,
-    ) : SurfaceView(context, attrs, defStyle),
-        SurfaceHolder.Callback {
+    ) : View(context, attrs, defStyle) {
         private var shaker: net.gerosyab.magicball.util.Shaker? = null
         private var widthPx = 0
         private var heightPx = 0
@@ -52,8 +49,6 @@ class MsgView
         private val reflectRectF = RectF()
         private var innerOuterRadius = 0f
         private var innerInnerRadius = 0f
-        private var strokeWidth = 0f
-        private val characterPaint = Paint()
         private val msgPaint = Paint()
         private val debugPaint = Paint()
         private val debugTextPaint = Paint()
@@ -105,7 +100,6 @@ class MsgView
         private val touchCountMax = 10
         private val touchArea = 250
         private var touchAreaCheck = false
-        private var thread: MsgThread? = null
 
         @JvmField
         var msgIdx: Int = 0
@@ -114,15 +108,86 @@ class MsgView
         var tabletScaleFactor: Float = 1f
             set(value) {
                 field = value.coerceIn(0.35f, 1f)
+                requestLayout()
             }
 
         init {
-            if (!isInEditMode) {
-                setZOrderOnTop(true)
-                holder.setFormat(PixelFormat.TRANSLUCENT)
-                holder.addCallback(this)
-                setWillNotDraw(false)
-            }
+            setLayerType(LAYER_TYPE_HARDWARE, null)
+        }
+
+        override fun onSizeChanged(
+            w: Int,
+            h: Int,
+            oldw: Int,
+            oldh: Int,
+        ) {
+            super.onSizeChanged(w, h, oldw, oldh)
+            widthPx = w
+            heightPx = h
+            if (w <= 0 || h <= 0) return
+            shaker = MainActivity.getShakerInstance()
+            val scale = tabletScaleFactor.coerceIn(0.35f, 1f)
+            val maxDiamPx = resources.getDimension(R.dimen.magic_ball_max_diameter)
+            val maxRadiusCap = maxDiamPx / 2f
+            val radiusFromWidth = w * 0.75f * scale
+            val maxRadiusFromHeight = h * 0.42f
+            outerRadius = min(min(radiusFromWidth, maxRadiusCap), maxRadiusFromHeight)
+            reflectRadius = outerRadius * 0.95f
+            innerOuterRadius = outerRadius * 0.5f
+            innerInnerRadius = outerRadius * 0.45f
+            cxcyBoundaryRadius = innerInnerRadius * 0.2f
+            cxcyBoundaryRadiusSquare = cxcyBoundaryRadius * cxcyBoundaryRadius
+            nMsgTriangleWidth = innerOuterRadius * 1.2f
+            nMsgTriangleHeight = innerOuterRadius * 1.2f
+            nBitmapHalfWidth = nMsgTriangleWidth / 2f
+            nBitmapHalfHeight = nMsgTriangleHeight / 2f
+            cx = w / 2f
+            cy = h / 2f
+            x = cx - nBitmapHalfWidth
+            y = cy - nBitmapHalfHeight
+            bcx = cx
+            bcy = cy
+            bcxCon = 0f
+            bcyCon = 0f
+            debugPaint.color = Color.YELLOW
+            debugPaint.isAntiAlias = true
+            debugPaint.strokeWidth = 2f
+            debugPaint.style = Paint.Style.STROKE
+            debugTextPaint.color = Color.WHITE
+            debugTextPaint.isAntiAlias = true
+            debugTextPaint.strokeWidth = 2f
+            debugTextPaint.style = Paint.Style.FILL_AND_STROKE
+            debugTextPaint.textSize = 35f
+            debugCenterTracePaint.color = Color.RED
+            debugCenterTracePaint.isAntiAlias = true
+            debugCenterTracePaint.strokeWidth = 5f
+            debugCenterTracePaint.style = Paint.Style.STROKE
+            debugCenterTracePaint.textSize = 35f
+            debugCirclePaint.color = Color.GREEN
+            debugCirclePaint.isAntiAlias = true
+            debugCirclePaint.strokeWidth = 7f
+            debugCirclePaint.style = Paint.Style.STROKE
+            debugCirclePaint.textSize = 35f
+            blackPaint.color = Color.BLACK
+            blackPaint.isAntiAlias = true
+            blackPaint.style = Paint.Style.FILL
+            reflectPaint.color = Color.argb(45, 255, 255, 255)
+            reflectPaint.isAntiAlias = true
+            reflectPaint.style = Paint.Style.FILL
+            reflectRectF.set(
+                cx - reflectRadius,
+                cy - reflectRadius,
+                cx + reflectRadius,
+                cy + reflectRadius,
+            )
+            innerOuterPaint.color = Color.rgb(20, 20, 20)
+            innerOuterPaint.isAntiAlias = true
+            innerInnerPaint.color = Color.rgb(5, 20, 60)
+            innerInnerPaint.isAntiAlias = true
+            msgPaint.isAntiAlias = true
+            msgPaint.isFilterBitmap = true
+            msgPaint.isDither = true
+            notifyMsgChanged()
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -150,8 +215,7 @@ class MsgView
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            if (isInEditMode) return
-            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+            if (isInEditMode || widthPx <= 0) return
             canvas.drawCircle(cx, cy, outerRadius, blackPaint)
             if (reflectionIncrease) {
                 reflectionDegree += 0.1f
@@ -270,6 +334,7 @@ class MsgView
                     } while (i < length)
                 }
             }
+            invalidate()
         }
 
         private fun update() {
@@ -316,139 +381,15 @@ class MsgView
             scaleIndex = 0
         }
 
-        override fun surfaceCreated(holder: SurfaceHolder) {
-            MyLog.d("MsgViewHolder", "surfaceCreated, holder id : $holder")
-            thread = MsgThread(holder).also {
-                it.setLoop(true)
-                it.start()
-            }
-        }
-
-        override fun surfaceChanged(
-            holder: SurfaceHolder,
-            format: Int,
-            width: Int,
-            height: Int,
-        ) {
-            MyLog.d("MsgViewHolder", "surfaceChanged called, holder id : $holder")
-            shaker = MainActivity.getShakerInstance()
-            widthPx = width
-            heightPx = height
-            val scale = tabletScaleFactor.coerceIn(0.35f, 1f)
-            outerRadius = width * 0.75f * scale
-            reflectRadius = outerRadius * 0.95f
-            innerOuterRadius = outerRadius * 0.5f
-            innerInnerRadius = outerRadius * 0.45f
-            strokeWidth = innerOuterRadius * 0.1f
-            cxcyBoundaryRadius = innerInnerRadius * 0.2f
-            cxcyBoundaryRadiusSquare = cxcyBoundaryRadius * cxcyBoundaryRadius
-            nMsgTriangleWidth = innerOuterRadius * 1.2f
-            nMsgTriangleHeight = innerOuterRadius * 1.2f
-            nBitmapHalfWidth = nMsgTriangleWidth / 2f
-            nBitmapHalfHeight = nMsgTriangleHeight / 2f
-            cx = width / 2f
-            cy = height / 2f
-            x = cx - nBitmapHalfWidth
-            y = cy - nBitmapHalfHeight
-            bcx = cx
-            bcy = cy
-            bcxCon = 0f
-            bcyCon = 0f
-            debugPaint.color = Color.YELLOW
-            debugPaint.isAntiAlias = true
-            debugPaint.strokeWidth = 2f
-            debugPaint.style = Paint.Style.STROKE
-            debugTextPaint.color = Color.WHITE
-            debugTextPaint.isAntiAlias = true
-            debugTextPaint.strokeWidth = 2f
-            debugTextPaint.style = Paint.Style.FILL_AND_STROKE
-            debugTextPaint.textSize = 35f
-            debugCenterTracePaint.color = Color.RED
-            debugCenterTracePaint.isAntiAlias = true
-            debugCenterTracePaint.strokeWidth = 5f
-            debugCenterTracePaint.style = Paint.Style.STROKE
-            debugCenterTracePaint.textSize = 35f
-            debugCirclePaint.color = Color.GREEN
-            debugCirclePaint.isAntiAlias = true
-            debugCirclePaint.strokeWidth = 7f
-            debugCirclePaint.style = Paint.Style.STROKE
-            debugCirclePaint.textSize = 35f
-            blackPaint.color = Color.BLACK
-            blackPaint.isAntiAlias = true
-            blackPaint.style = Paint.Style.FILL
-            reflectPaint.color = Color.argb(45, 255, 255, 255)
-            reflectPaint.isAntiAlias = true
-            reflectPaint.style = Paint.Style.FILL
-            reflectRectF.set(
-                cx - reflectRadius,
-                cy - reflectRadius,
-                cx + reflectRadius,
-                cy + reflectRadius,
-            )
-            innerOuterPaint.color = Color.rgb(20, 20, 20)
-            innerOuterPaint.isAntiAlias = true
-            innerInnerPaint.color = Color.rgb(5, 20, 60)
-            innerInnerPaint.isAntiAlias = true
-            characterPaint.color = Color.BLACK
-            characterPaint.isAntiAlias = true
-            characterPaint.strokeWidth = strokeWidth
-            characterPaint.style = Paint.Style.STROKE
-            msgPaint.isAntiAlias = true
-            msgPaint.isFilterBitmap = true
-            msgPaint.isDither = true
-            notifyMsgChanged()
-        }
-
-        override fun surfaceDestroyed(holder: SurfaceHolder) {
-            MyLog.d("MsgViewHolder", "surfaceDestroyed, holder id : $holder")
-            var retry = true
-            thread?.setLoop(false)
-            while (retry) {
-                try {
-                    thread?.join()
-                    retry = false
-                } catch (_: InterruptedException) {
-                }
-            }
-            thread = null
-        }
-
         fun notifyMsgChanged() {
             MyLog.d("MsgView", "notifyMsgChanged")
-            setNewMsg(msgIdx)
+            if (widthPx > 0) {
+                setNewMsg(msgIdx)
+            }
         }
 
         fun setMsgIdx(index: Int) {
             MyLog.d("MsgView", "setMsgIdx, msg index : $index")
             msgIdx = index
-        }
-
-        private inner class MsgThread(
-            private val holder: SurfaceHolder,
-        ) : Thread() {
-            private var running = false
-
-            init {
-                running = true
-            }
-
-            override fun run() {
-                while (running) {
-                    var canvas: Canvas? = null
-                    try {
-                        canvas = holder.lockCanvas()
-                        synchronized(holder) { postInvalidate() }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        MyLog.d("MsgView", e.message ?: "")
-                    } finally {
-                        canvas?.let { holder.unlockCanvasAndPost(it) }
-                    }
-                }
-            }
-
-            fun setLoop(isRunning: Boolean) {
-                running = isRunning
-            }
         }
     }

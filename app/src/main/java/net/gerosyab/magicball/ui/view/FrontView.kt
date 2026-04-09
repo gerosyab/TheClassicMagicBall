@@ -8,27 +8,25 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PixelFormat
-import android.graphics.PorterDuff
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.AttributeSet
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import net.gerosyab.magicball.util.MyLog
-
+import android.view.View
+import androidx.core.content.res.ResourcesCompat
+import kotlin.math.min
+import net.gerosyab.magicball.R
 class FrontView
     @JvmOverloads
     constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyle: Int = 0,
-    ) : SurfaceView(context, attrs, defStyle),
-        SurfaceHolder.Callback {
+    ) : View(context, attrs, defStyle) {
         private val rBoundary = 15f
         private var degree = 0f
         private var rIncrease = true
-        private var surfaceWidth = 0
-        private var surfaceHeight = 0
+        private var viewWidth = 0
+        private var viewHeight = 0
         var cx: Float = 0f
             private set
         var cy: Float = 0f
@@ -37,65 +35,51 @@ class FrontView
         private var reflectRadius = 0f
         private val reflectRectF = RectF()
         private var innerRadius = 0f
-        private var charcterRadius1 = 0f
-        private var charcterRadius2 = 0f
         private var strokeWidth = 0f
         private val blackPaint = Paint()
         private val reflectPaint = Paint()
         private val whitePaint = Paint()
-        private val characterPaint = Paint()
+        private val eightPaint =
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.BLACK
+                textAlign = Paint.Align.CENTER
+            }
+        private var chakraTypeface: Typeface? = null
 
         init {
-            setZOrderOnTop(true)
-            holder.setFormat(PixelFormat.TRANSLUCENT)
-            holder.addCallback(this)
-            setWillNotDraw(false)
+            setLayerType(LAYER_TYPE_HARDWARE, null)
         }
 
         val radius: Float
             get() = outerRadius
 
-        override fun onDraw(canvas: Canvas) {
-            super.onDraw(canvas)
-            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-            canvas.drawCircle(cx, cy, outerRadius, blackPaint)
-            canvas.drawCircle(cx, cy, innerRadius, whitePaint)
-            canvas.drawCircle(cx, cy - charcterRadius1, charcterRadius1, characterPaint)
-            canvas.drawCircle(cx, cy + charcterRadius2, charcterRadius2, characterPaint)
-            if (rIncrease) {
-                degree += 0.1f
-                if (degree >= rBoundary) {
-                    rIncrease = false
-                }
-            } else {
-                degree -= 0.1f
-                if (degree <= -rBoundary) {
-                    rIncrease = true
-                }
+        private fun ensureTypeface() {
+            if (chakraTypeface == null) {
+                chakraTypeface =
+                    ResourcesCompat.getFont(context, R.font.chakra_petch_regular)
             }
-            canvas.drawArc(reflectRectF, 135 + degree, 180f, true, reflectPaint)
-            invalidate()
+            eightPaint.typeface = chakraTypeface ?: Typeface.DEFAULT_BOLD
         }
 
-        override fun surfaceCreated(holder: SurfaceHolder) {
-            MyLog.d("FrontView", "surfaceCreated")
-        }
-
-        override fun surfaceChanged(
-            holder: SurfaceHolder,
-            format: Int,
-            width: Int,
-            height: Int,
+        override fun onSizeChanged(
+            w: Int,
+            h: Int,
+            oldw: Int,
+            oldh: Int,
         ) {
-            surfaceWidth = width
-            surfaceHeight = height
-            cx = surfaceWidth / 2f
-            cy = surfaceHeight / 2f - surfaceHeight * 0.1f
-            outerRadius = (surfaceWidth * 0.275).toFloat()
+            super.onSizeChanged(w, h, oldw, oldh)
+            viewWidth = w
+            viewHeight = h
+            if (w <= 0 || h <= 0) return
+            cx = w / 2f
+            cy = h / 2f - h * 0.1f
+            val maxDiamPx = resources.getDimension(R.dimen.magic_ball_max_diameter)
+            val radiusFromWidth = w * 0.4f
+            val maxRadiusFromCap = maxDiamPx / 2f
+            val maxRadiusFromHeight = h * 0.38f
+            outerRadius = min(min(radiusFromWidth, maxRadiusFromCap), maxRadiusFromHeight)
             reflectRadius = outerRadius * 0.95f
             innerRadius = outerRadius * 0.425f
-            charcterRadius1 = innerRadius * 0.225f
-            charcterRadius2 = innerRadius * 0.25f
             strokeWidth = innerRadius * 0.1f
             blackPaint.color = Color.BLACK
             blackPaint.isAntiAlias = true
@@ -111,13 +95,32 @@ class FrontView
             )
             whitePaint.color = Color.WHITE
             whitePaint.isAntiAlias = true
-            characterPaint.color = Color.BLACK
-            characterPaint.isAntiAlias = true
-            characterPaint.strokeWidth = strokeWidth
-            characterPaint.style = Paint.Style.STROKE
+            ensureTypeface()
+            eightPaint.textSize = innerRadius * 1.05f
         }
 
-        override fun surfaceDestroyed(holder: SurfaceHolder) {
-            MyLog.d("FrontView", "surfaceDestroyed")
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+            if (viewWidth <= 0) return
+            canvas.drawCircle(cx, cy, outerRadius, blackPaint)
+            canvas.drawCircle(cx, cy, innerRadius, whitePaint)
+            val eight = "8"
+            ensureTypeface()
+            val fm = eightPaint.fontMetrics
+            val textY = cy - (fm.ascent + fm.descent) / 2f
+            canvas.drawText(eight, cx, textY, eightPaint)
+            if (rIncrease) {
+                degree += 0.1f
+                if (degree >= rBoundary) {
+                    rIncrease = false
+                }
+            } else {
+                degree -= 0.1f
+                if (degree <= -rBoundary) {
+                    rIncrease = true
+                }
+            }
+            canvas.drawArc(reflectRectF, 135 + degree, 180f, true, reflectPaint)
+            invalidate()
         }
     }

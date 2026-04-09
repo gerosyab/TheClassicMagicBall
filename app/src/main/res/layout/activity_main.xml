@@ -19,7 +19,8 @@
             android:id="@+id/content_frame"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:paddingBottom="@dimen/content_above_ad_padding" />
 
         <com.google.android.gms.ads.AdView
             android:id="@+id/adView"

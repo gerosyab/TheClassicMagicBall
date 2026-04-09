@@ -1,0 +1,3 @@
+<resources>
+    <dimen name="magic_ball_max_diameter">320dp</dimen>
+</resources>

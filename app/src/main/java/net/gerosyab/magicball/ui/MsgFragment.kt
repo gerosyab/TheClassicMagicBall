@@ -6,7 +6,6 @@ package net.gerosyab.magicball.ui
 
 import android.content.ContentValues
 import android.graphics.Bitmap
-import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
@@ -64,7 +63,6 @@ class MsgFragment : Fragment() {
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
-        binding.msgview.holder.setFormat(PixelFormat.TRANSPARENT)
         binding.msgview.tabletScaleFactor = tabletScale
         binding.msgview.setMsgIdx(MyRandom.getNum())
 
