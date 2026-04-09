@@ -15,6 +15,7 @@ import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import kotlin.math.min
 import net.gerosyab.magicball.R
+
 class FrontView
     @JvmOverloads
     constructor(
@@ -96,7 +97,8 @@ class FrontView
             whitePaint.color = Color.WHITE
             whitePaint.isAntiAlias = true
             ensureTypeface()
-            eightPaint.textSize = innerRadius * 1.05f
+            // Text size from inner white circle radius (was innerRadius * 1.05f; ~1.3× larger digit)
+            eightPaint.textSize = innerRadius * 1.05f * 1.3f
         }
 
         override fun onDraw(canvas: Canvas) {

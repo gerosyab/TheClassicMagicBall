@@ -43,7 +43,7 @@ class MsgFragment : Fragment() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private var hintTimer: Timer? = null
     private var hintTick = -1
-    private var hintPhase = 0
+    private var hintStep = 0
 
     private val tabletScale: Float
         get() = arguments?.getFloat(ARG_TABLET_SCALE) ?: 1f
@@ -75,6 +75,9 @@ class MsgFragment : Fragment() {
         }
         binding.buttonCapture.setOnClickListener {
             captureMsgArea()
+        }
+        binding.buttonHintCenter.setOnClickListener {
+            setNewMessage()
         }
     }
 
@@ -132,21 +135,15 @@ class MsgFragment : Fragment() {
     private fun onHintTick() {
         hintTick++
         if (hintTick % 2 != 0) return
-        hintPhase = (hintPhase + 1) % 2
-        val text =
-            if (hintPhase == 0) {
-                getString(R.string.hint_shake_me)
-            } else {
-                getString(R.string.hint_touch_me)
-            }
-        _binding?.buttonHintCenter?.text = text
+        hintStep = (hintStep + 1) % HintRotation.PHASE_COUNT
+        _binding?.buttonHintCenter?.text = HintRotation.label(requireContext(), hintStep)
     }
 
     override fun onResume() {
         super.onResume()
         hintTick = -1
-        hintPhase = 0
-        binding.buttonHintCenter.text = getString(R.string.hint_shake_me)
+        hintStep = 0
+        binding.buttonHintCenter.text = HintRotation.label(requireContext(), 0)
         startHintTimer()
     }
 

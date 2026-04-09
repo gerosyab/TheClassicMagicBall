@@ -4,6 +4,7 @@
     <string name="information"><u>INFORMATION</u></string>
     <string name="hint_shake_me">SHAKE ME</string>
     <string name="hint_touch_me">TOUCH ME</string>
+    <string name="hint_try_me">TRY ME</string>
     <string name="msg_miss_me">MISS ME?</string>
     <string name="msg_boring">BORING…</string>
     <string name="msg_ask_me">ASK ME</string>

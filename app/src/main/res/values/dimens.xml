@@ -6,4 +6,9 @@
     <dimen name="title_top_margin">12dp</dimen>
     <dimen name="content_above_ad_padding">20dp</dimen>
     <dimen name="main_bottom_block_padding">16dp</dimen>
+    <!-- Wider than longest hint (TOUCH ME) so pill width does not jump -->
+    <dimen name="magic_hint_pill_min_width">200dp</dimen>
+    <!-- 48dp * 1.2 -->
+    <dimen name="magic_circle_button_size">58dp</dimen>
+    <dimen name="magic_circle_button_padding">12dp</dimen>
 </resources>

@@ -34,7 +34,7 @@ class MainFragment : Fragment() {
     private var timer: Timer? = null
     private val handler = Handler(Looper.getMainLooper())
     private var tickSecond = -1
-    private var hintPhase = 0
+    private var hintStep = 0
     private var secondaryIdx = -1
     private var secondaryBlank = true
 
@@ -80,6 +80,10 @@ class MainFragment : Fragment() {
         binding.secondaryTextSwitcher.outAnimation = fadeOut
 
         binding.infoText.setOnClickListener { showInfoDialog() }
+
+        binding.hintActionButton.setOnClickListener {
+            activityRef?.openMsgFromPill()
+        }
 
         binding.frontview.setOnTouchListener { _, event ->
             val fv = binding.frontview
@@ -163,14 +167,8 @@ class MainFragment : Fragment() {
     private fun onTick() {
         tickSecond++
         if (tickSecond % 2 == 0) {
-            hintPhase = (hintPhase + 1) % 2
-            val hint =
-                if (hintPhase == 0) {
-                    getString(R.string.hint_shake_me)
-                } else {
-                    getString(R.string.hint_touch_me)
-                }
-            binding.hintActionButton.text = hint
+            hintStep = (hintStep + 1) % HintRotation.PHASE_COUNT
+            binding.hintActionButton.text = HintRotation.label(requireContext(), hintStep)
         }
         if (tickSecond % 4 == 3 && !secondaryBlank) {
             secondaryBlank = true
@@ -197,10 +195,10 @@ class MainFragment : Fragment() {
         MyLog.d("MainFragment", "onResume")
         super.onResume()
         tickSecond = -1
-        hintPhase = 0
+        hintStep = 0
         secondaryIdx = -1
         secondaryBlank = true
-        binding.hintActionButton.text = ""
+        binding.hintActionButton.text = HintRotation.label(requireContext(), 0)
         binding.secondaryTextSwitcher.setText("")
         startTimer()
     }

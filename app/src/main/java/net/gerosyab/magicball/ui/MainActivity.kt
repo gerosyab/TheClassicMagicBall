@@ -143,6 +143,23 @@ class MainActivity :
         onShakingDetected()
     }
 
+    /** Main screen pill: go to message screen (phone) or refresh answer (tablet). */
+    fun openMsgFromPill() {
+        vibrateShort()
+        if (tabletLayout) {
+            (supportFragmentManager.findFragmentById(R.id.msg_side_container) as? MsgFragment)
+                ?.setNewMessage()
+            return
+        }
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            return
+        }
+        supportFragmentManager.commit {
+            replace(R.id.content_frame, MsgFragment.newInstance(tabletScaleFactor = 1f))
+            addToBackStack(null)
+        }
+    }
+
     private fun vibrateShort() {
         val duration = Const.VIB_TIME_MS
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
