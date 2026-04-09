@@ -8,29 +8,34 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 
 ## 1. Title bar / 상단 타이틀바
 
-**Layout:** `app/src/main/res/layout/include_magic_title.xml`  
-- Horizontal `LinearLayout` with weighted spacers: **7.5% + 85% + 7.5%** of the row width.  
-- 가로 `LinearLayout` + 가중치: 행 너비의 **7.5% + 85% + 7.5%**.  
-- `ImageView` uses `scaleType="fitCenter"` inside the **85%** slot.  
-- 이미지는 **85%** 슬롯 안에서 `fitCenter`.
+**Layout:** `app/src/main/res/layout/include_magic_title.xml`
 
-**Row height** comes from `magic_chrome_title_block_height` + inner `paddingTop` = `title_top_margin` on the wrapping `FrameLayout` (phone) or the same dimen on tablet column layouts.  
-**행 높이**는 `magic_chrome_title_block_height`이고, 바깥 `FrameLayout`에 `title_top_margin` 패딩이 있음.
+**Width rule / 가로 기준:**  
+- Horizontal `LinearLayout`: weighted spacers **7.5% + 85% + 7.5%** of the **parent width** (same on phone and tablet).  
+- 가로 `LinearLayout`: 부모 **너비** 대비 **7.5% + 85% + 7.5%** 가중치.  
+- The `ImageView` sits in the **85%** slot: `layout_width="0dp"`, `layout_weight="0.85"`, `adjustViewBounds="true"`, `layout_height="wrap_content"`, `scaleType="fitCenter"`.  
+- 이미지는 **85%** 슬롯에 두고, **가로가 부모 너비의 85%**가 되도록 한 뒤 비율에 맞춰 **세로는 intrinsic** (`wrap_content` + `adjustViewBounds`).
 
-| Mode | `magic_chrome_title_block_height` | `title_top_margin` | Image width |
-|------|-----------------------------------|--------------------|-------------|
-| Phone / 폰 | `values/dimens.xml` → **92dp** | **12dp** | **85%** of row |
-| Tablet portrait / 태블릿 세로 (sw ≥ 600) | `values-sw600dp/dimens.xml` → **140dp** | **12dp** | **85%** |
-| Tablet landscape / 태블릿 가로 (sw600dp-land) | `values-sw600dp-land/dimens.xml` → **100dp** | **12dp** | **85%** |
+**Height rule / 세로:**  
+- **Not** a fixed dp row height. The title row height follows the **scaled drawable height** at 85% width (aspect ratio preserved).  
+- **고정 dp 행 높이 없음.** 타이틀 행 세로는 **너비 85%로 스케일된 이미지 높이**에 따름.
+
+**Outer wrapper / 바깥 래퍼:**  
+- `FrameLayout` with `layout_height="wrap_content"`, `paddingTop="@dimen/title_top_margin"` (**12dp**).  
+- `FrameLayout`은 `wrap_content` + `title_top_margin` (**12dp**) 패딩.
+
+| Setting / 항목 | Value / 값 |
+|----------------|------------|
+| `title_top_margin` | **12dp** — `values/dimens.xml` |
+| Image horizontal share / 이미지 가로 비율 | **85%** of fragment (column) width |
+| Side margins (implicit) / 좌우 여백 | **7.5%** each via `Space` weights |
 
 **Fragment layouts:**  
-- Phone: `layout/main_fragment.xml`, `layout/msg_fragment.xml` (overlay ball + title `FrameLayout`).  
-- 폰: `layout/main_fragment.xml`, `layout/msg_fragment.xml` (볼 전체 겹침 + 타이틀 `FrameLayout`).  
-- Tablet: `layout-sw600dp/main_fragment.xml`, `layout-sw600dp/msg_fragment.xml` (column: title row → ball `weight=1` → bottom chrome).  
-- 태블릿: `layout-sw600dp/` — 세로 컬럼: 타이틀 행 → 볼 `weight=1` → 하단.
+- Phone: `layout/main_fragment.xml`, `layout/msg_fragment.xml` (overlay ball + title wrapper).  
+- Tablet: `layout-sw600dp/main_fragment.xml`, `layout-sw600dp/msg_fragment.xml` (column: title row → ball `weight=1` → bottom chrome).
 
-**Tuning / 조정:** change weights in `include_magic_title.xml`, or dimens `magic_chrome_title_block_height`, `title_top_margin`, `screen_top_padding`.  
-**튜닝:** `include_magic_title.xml`의 weight, 또는 `magic_chrome_title_block_height`, `title_top_margin`, `screen_top_padding`.
+**Tuning / 조정:** change **0.075 / 0.85 / 0.075** weights in `include_magic_title.xml`, or `title_top_margin`, `screen_top_padding`.  
+**튜닝:** `include_magic_title.xml`의 weight 비율, `title_top_margin`, `screen_top_padding`.
 
 ---
 
@@ -42,30 +47,21 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 **Radius pipeline / 반지름 계산:**
 
 1. `minDim = min(w, h)` — allocated view width × height.  
-   `minDim = min(w, h)` — 뷰에 배정된 가로·세로.
 2. `maxRadiusCap = magic_ball_max_diameter / 2` (dp → px).  
-   `maxRadiusCap = magic_ball_max_diameter / 2` (dp→px).
 3. `r0 = min(minDim * 0.4f, maxRadiusCap, minDim * 0.38f)` → effectively often `min(minDim * 0.38f, maxRadiusCap)`.  
-   보통 `min(minDim×0.38, cap)`.
 4. `r1 = r0 * front_ball_radius_percent / 100` (clamped 70–200 in code).  
-   `r1 = r0 × front_ball_radius_percent / 100` (코드에서 70–200 클램프).
-5. `outerRadius = min(min(r1, maxRadiusCap), minDim * 0.38f)`.  
-   `outerRadius = min(min(r1, cap), minDim×0.38)`.
+5. `outerRadius = min(min(r1, maxRadiusCap), minDim * 0.38f)`.
 
 | Mode | `magic_ball_max_diameter` | `front_ball_radius_percent` |
 |------|---------------------------|-----------------------------|
-| Phone (sw &lt; 600) / 폰 | **6000dp** (effectively no cap / 사실상 무캡) | **100** — `values/integers.xml` |
-| Tablet portrait / 태블릿 세로 | **440dp** (radius cap ≈ 220dp / 반지름 상한 ≈ 220dp) | **115** — `values-sw600dp/integers.xml` |
+| Phone (sw &lt; 600) / 폰 | **6000dp** (effectively no cap) | **100** — `values/integers.xml` |
+| Tablet portrait / 태블릿 세로 | **440dp** | **115** — `values-sw600dp/integers.xml` |
 | Tablet landscape / 태블릿 가로 | **440dp** | **82** — `values-sw600dp-land/integers.xml` |
 
-**View size `w × h` / 뷰 크기:**  
-- **Phone:** `FrontView` is `match_parent` under a `FrameLayout`; it draws **behind** title and bottom overlays. `h` is almost full fragment height (minus root `screen_top_padding`).  
-- **폰:** `FrontView`가 `match_parent`라 타이틀·하단 **뒤까지** 그림. `h`는 프래그먼트 높이 거의 전체.  
-- **Tablet:** `FrontView` sits in the **middle band** only (`layout_weight=1` between title row and bottom chrome); `h` is **much smaller** than on phone for the same device.  
-- **태블릿:** 볼은 타이틀과 하단 사이 **중간 밴드**만 사용 → 같은 기기에서도 `h`가 폰 레이아웃보다 **훨씬 작음**.
+**View size `w × h`:** Phone overlay (full fragment); tablet middle band only.  
+**뷰 크기:** 폰은 겹침 전체, 태블릿은 중간 밴드.
 
-**Tuning / 조정:** `values*/integers.xml` → `front_ball_radius_percent`; `values*/dimens.xml` → `magic_ball_max_diameter`; or edit coefficients `0.4f`, `0.38f` in `FrontView.kt`.  
-**튜닝:** `front_ball_radius_percent`, `magic_ball_max_diameter`, 또는 `FrontView.kt`의 `0.4`, `0.38` 계수.
+**Tuning / 조정:** `front_ball_radius_percent`, `magic_ball_max_diameter`, or coefficients in `FrontView.kt`.
 
 ---
 
@@ -78,26 +74,19 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 
 1. `minDim = min(w, h)`.
 2. `maxRadiusCap = magic_ball_max_diameter / 2`.
-3. `radiusFromWidth = minDim * 0.75f * tabletScaleFactor` (`tabletScaleFactor` is **1f** from `MainActivity` today).  
-   `tabletScaleFactor`는 현재 **1f**.
-4. `maxRadiusFromHeight` =  
-   - if `smallestScreenWidthDp < 600` / **폰:** `w * 0.75f` (full view width / 뷰 가로 전체)  
-   - if `swDp >= 600` / **태블릿:** `minDim * 0.42f`
+3. `radiusFromWidth = minDim * 0.75f * tabletScaleFactor` (**1f** from `MainActivity`).
+4. `maxRadiusFromHeight` = if `swDp < 600`: **`w * 0.75f`**; if `swDp >= 600`: **`minDim * 0.42f`**.
 5. `r0 = min(radiusFromWidth, maxRadiusCap, maxRadiusFromHeight)`.
-6. `r1 = r0 * msg_ball_radius_percent / 100` (clamped 70–220).  
+6. `r1 = r0 * msg_ball_radius_percent / 100` (clamped 70–220).
 7. `outerRadius = min(min(r1, maxRadiusCap), maxRadiusFromHeight)`.
 
 | Mode | `magic_ball_max_diameter` | `msg_ball_radius_percent` | `maxRadiusFromHeight` |
 |------|---------------------------|----------------------------|------------------------|
 | Phone / 폰 | 6000dp | **100** — `values/integers.xml` | **`w * 0.75`** |
-| Tablet portrait / 태블릿 세로 | 440dp | **115** — `values-sw600dp/integers.xml` | **`minDim * 0.42`** |
-| Tablet landscape / 태블릿 가로 | 440dp | **82** — `values-sw600dp-land/integers.xml` | **`minDim * 0.42`** |
+| Tablet portrait / 태블릿 세로 | 440dp | **130** — `values-sw600dp/integers.xml` | **`minDim * 0.42`** |
+| Tablet landscape / 태블릿 가로 | 440dp | **110** — `values-sw600dp-land/integers.xml` | **`minDim * 0.42`** |
 
-**View size / 뷰 크기:** Same pattern as `FrontView` — phone overlay vs tablet middle band.  
-**뷰 크기:** `FrontView`와 동일 — 폰은 겹침, 태블릿은 중간 밴드.
-
-**Tuning / 조정:** `msg_ball_radius_percent`, `magic_ball_max_diameter`, `tabletScaleFactor` (constructor args), or coefficients `0.75f`, `0.42f` / phone `w*0.75` branch in `MsgView.kt`.  
-**튜닝:** `msg_ball_radius_percent`, `magic_ball_max_diameter`, `MsgView.kt`의 `0.75`, `0.42`, 폰 분기 `w×0.75`.
+**Tuning / 조정:** `msg_ball_radius_percent` in `values/integers.xml`, `values-sw600dp/integers.xml`, `values-sw600dp-land/integers.xml`; `magic_ball_max_diameter`; or coefficients in `MsgView.kt`.
 
 ---
 
@@ -105,24 +94,25 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 
 | Resource | Typical use / 용도 |
 |----------|-------------------|
-| `screen_top_padding` | Root fragment top inset / 루트 상단 패딩 |
-| `magic_bottom_chrome_height` | Fixed bottom block (pill + secondary + footer) / 하단 고정 블록 |
-| `magic_pill_row_height` | Pill or three-button row height / 알약·3버튼 행 높이 |
-| `magic_secondary_text_block_height` | Secondary line (e.g. BORING cycle) / 보조 문구 |
-| `magic_footer_row_height` | Copyright row / 저작권 행 |
-| `main_bottom_block_padding` | Padding inside bottom chrome / 하단 블록 내부 패딩 |
-| `ad_banner_slot_height` | Reserved height for banner in `activity_main` / 액티비티 하단 광고 슬롯 |
+| `screen_top_padding` | Root fragment top inset |
+| `magic_bottom_chrome_height` | Fixed bottom block |
+| `magic_pill_row_height` | Pill / three-button row |
+| `magic_secondary_text_block_height` | Secondary line |
+| `magic_footer_row_height` | Copyright row |
+| `main_bottom_block_padding` | Padding inside bottom chrome |
+| `ad_banner_slot_height` | Banner slot in `activity_main` |
+| `magic_ball_max_diameter` | Ball diameter cap — phone `values/dimens.xml`, tablet `values-sw600dp/dimens.xml` |
 
-Files / 파일: `app/src/main/res/values/dimens.xml`, `values-sw600dp/dimens.xml`, `values-sw600dp-land/dimens.xml`.
+**Note / 참고:** `magic_chrome_title_block_height` was removed; title height is width-driven (85%) + intrinsic aspect.  
+**참고:** `magic_chrome_title_block_height`는 제거됨. 타이틀 세로는 가로 85% + 비율 기반.
 
 ---
 
 ## 5. Activity / 액티비티
 
-`activity_main.xml`: `StarfieldView` full screen; `content_frame` for fragments; `ad_banner_slot` fixed height (`ad_banner_slot_height`) with `AdView` inside.  
-`activity_main.xml`: 별 배경 전체, `content_frame`에 프래그먼트, `ad_banner_slot` 고정 높이 안에 `AdView`.
+`activity_main.xml`: `StarfieldView`; `content_frame`; `ad_banner_slot` + `AdView`.
 
 ---
 
-*Last aligned with codebase structure for layout-sw600dp split and include_magic_title 85% width.*  
-*코드 기준: layout-sw600dp 분리, include_magic_title 85% 가로 반영.*
+*Title: 85% width, intrinsic height. Msg ball %: tablet portrait 130, tablet landscape 110.*  
+*타이틀: 가로 85%, 세로 intrinsic. Msg 볼 %: 태블릿 세로 130, 가로 110.*

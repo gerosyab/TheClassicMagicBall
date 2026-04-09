@@ -18,8 +18,6 @@
     <dimen name="magic_pill_to_secondary_gap">8dp</dimen>
     <!-- Reserve before AdMob loads (BANNER ~50dp); slot shows starfield through transparent frame -->
     <dimen name="ad_banner_slot_height">50dp</dimen>
-    <!-- title_top_margin + drawable row (include uses 85% width) -->
-    <dimen name="magic_chrome_title_block_height">92dp</dimen>
     <!-- pill + gap + secondary + footer_row + bottom padding -->
     <dimen name="magic_footer_row_height">40dp</dimen>
     <dimen name="magic_bottom_chrome_height">166dp</dimen>

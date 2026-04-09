@@ -2,5 +2,5 @@
 <!-- Narrow strip: same Main/Msg so no jump -->
 <resources>
     <integer name="front_ball_radius_percent">82</integer>
-    <integer name="msg_ball_radius_percent">82</integer>
+    <integer name="msg_ball_radius_percent">110</integer>
 </resources>

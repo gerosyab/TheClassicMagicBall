@@ -1,6 +1,4 @@
 <resources>
     <!-- Wider cap so tablet % scaling is not clipped too early -->
     <dimen name="magic_ball_max_diameter">440dp</dimen>
-    <!-- Title row (85% drawable); tall enough for tablet asset -->
-    <dimen name="magic_chrome_title_block_height">140dp</dimen>
 </resources>

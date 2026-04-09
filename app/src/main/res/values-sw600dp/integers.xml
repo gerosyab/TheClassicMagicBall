@@ -2,5 +2,5 @@
 <resources>
     <!-- Tablet: same % for Main/Msg so sphere size does not jump on transition -->
     <integer name="front_ball_radius_percent">115</integer>
-    <integer name="msg_ball_radius_percent">115</integer>
+    <integer name="msg_ball_radius_percent">130</integer>
 </resources>
