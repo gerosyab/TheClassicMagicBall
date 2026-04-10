@@ -6,8 +6,6 @@ package net.gerosyab.magicball.ui
 
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.SpannableString
 import android.text.util.Linkify
 import android.view.Gravity
@@ -20,8 +18,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import java.io.ByteArrayOutputStream
-import java.util.Timer
-import java.util.TimerTask
 import net.gerosyab.magicball.R
 import net.gerosyab.magicball.databinding.MainFragmentBinding
 import net.gerosyab.magicball.util.MyLog
@@ -31,14 +27,17 @@ class MainFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var activityRef: MainActivity? = null
-    private var timer: Timer? = null
-    private val handler = Handler(Looper.getMainLooper())
-    private var tickSecond = -1
-    private var hintStep = 0
-    private var secondaryIdx = -1
-    private var secondaryBlank = true
 
     private var isBallTouched = false
+
+    private fun refreshBottomChromeFromTicker() {
+        val b = _binding ?: return
+        val ctx = context ?: return
+        b.hintActionButton.text = BottomChromeTicker.hintLabel(ctx)
+        b.secondaryTextSwitcher.setText(BottomChromeTicker.secondaryText(secondaryMessages))
+    }
+
+    private val bottomChromeListener: () -> Unit = { refreshBottomChromeFromTicker() }
 
     private val secondaryMessages: Array<String> by lazy {
         arrayOf(
@@ -148,38 +147,6 @@ class MainFragment : Fragment() {
         dialog.findViewById<TextView>(android.R.id.message)?.textSize = 12f
     }
 
-    private fun startTimer() {
-        timer?.cancel()
-        timer =
-            Timer().apply {
-                scheduleAtFixedRate(
-                    object : TimerTask() {
-                        override fun run() {
-                            handler.post { onTick() }
-                        }
-                    },
-                    0L,
-                    1000L,
-                )
-            }
-    }
-
-    private fun onTick() {
-        tickSecond++
-        if (tickSecond % 2 == 0) {
-            hintStep = (hintStep + 1) % HintRotation.PHASE_COUNT
-            binding.hintActionButton.text = HintRotation.label(requireContext(), hintStep)
-        }
-        if (tickSecond % 4 == 3 && !secondaryBlank) {
-            secondaryBlank = true
-            binding.secondaryTextSwitcher.setText("")
-        } else if (tickSecond % 4 == 0 && secondaryBlank) {
-            secondaryBlank = false
-            secondaryIdx = (secondaryIdx + 1) % secondaryMessages.size
-            binding.secondaryTextSwitcher.setText(secondaryMessages[secondaryIdx])
-        }
-    }
-
     override fun onAttach(context: android.content.Context) {
         MyLog.d("MainFragment", "onAttach")
         super.onAttach(context)
@@ -194,24 +161,16 @@ class MainFragment : Fragment() {
     override fun onResume() {
         MyLog.d("MainFragment", "onResume")
         super.onResume()
-        tickSecond = -1
-        hintStep = 0
-        secondaryIdx = -1
-        secondaryBlank = true
-        binding.hintActionButton.text = HintRotation.label(requireContext(), 0)
-        binding.secondaryTextSwitcher.setText("")
-        startTimer()
+        BottomChromeTicker.addListener(bottomChromeListener)
     }
 
     override fun onPause() {
-        timer?.cancel()
-        timer = null
+        BottomChromeTicker.removeListener(bottomChromeListener)
         super.onPause()
     }
 
     override fun onDestroyView() {
-        timer?.cancel()
-        timer = null
+        BottomChromeTicker.removeListener(bottomChromeListener)
         _binding = null
         super.onDestroyView()
     }
