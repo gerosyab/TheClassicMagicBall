@@ -18,9 +18,13 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import java.util.ArrayList
+import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.min
+import kotlin.math.sin
 import net.gerosyab.magicball.R
 import net.gerosyab.magicball.data.Const
+import net.gerosyab.magicball.ui.MainActivity
 import net.gerosyab.magicball.util.MyLog
 
 class MsgView
@@ -36,11 +40,27 @@ class MsgView
             private set
         var cy: Float = 0f
             private set
+
+        /** Bitmap center (floating, accelerometer-driven). */
+        private var bcx = 0f
+        private var bcy = 0f
+
+        /** Offset from view center; same as legacy Java `bcxCon` / `bcyCon`. */
+        private var bcxCon = 0f
+        private var bcyCon = 0f
+
+        /** Top-left of message bitmap (legacy Java `x` / `y`). */
+        private var msgDrawX = 0f
+        private var msgDrawY = 0f
+
         private var outerRadius = 0f
         private var reflectRadius = 0f
         private val reflectRectF = RectF()
         private var innerOuterRadius = 0f
         private var innerInnerRadius = 0f
+        private var cxcyBoundaryRadius = 0f
+        private var cxcyBoundaryRadiusSquare = 0f
+
         private val msgPaint = Paint()
         private val debugPaint = Paint()
         private val debugTextPaint = Paint()
@@ -84,6 +104,15 @@ class MsgView
         private val touchArea = 250
         private var touchAreaCheck = false
 
+        private var rIncrease = false
+        private var isBoundaryOut = false
+        private var mSensorX = 0f
+        private var mSensorY = 0f
+        private var mSensorZ = 0f
+        private var radian = 0f
+        private val rBoundary = 5f
+        private var degree = 0f
+
         @JvmField
         var msgIdx: Int = 0
 
@@ -117,12 +146,10 @@ class MsgView
                 } else {
                     w * 0.75f
                 }
-            // Msg: rBase has no magic_ball_max_diameter cap (only formula terms).
             val rBase = min(radiusFromWidth, maxRadiusFromHeight)
             val pctRaw = resources.getInteger(R.integer.msg_ball_radius_percent)
             val pct = pctRaw.coerceIn(70, 220)
             var r = rBase * (pct / 100f)
-            // Msg: no maxFit, no final diameter cap — only rBase formula + percent (may draw outside view).
             outerRadius = r
             val orient =
                 when (resources.configuration.orientation) {
@@ -140,12 +167,20 @@ class MsgView
             reflectRadius = outerRadius * 0.95f
             innerOuterRadius = outerRadius * 0.5f
             innerInnerRadius = outerRadius * 0.45f
+            cxcyBoundaryRadius = innerInnerRadius * 0.2f
+            cxcyBoundaryRadiusSquare = cxcyBoundaryRadius * cxcyBoundaryRadius
             nMsgTriangleWidth = innerOuterRadius * 1.44f
             nMsgTriangleHeight = innerOuterRadius * 1.44f
             nBitmapHalfWidth = nMsgTriangleWidth / 2f
             nBitmapHalfHeight = nMsgTriangleHeight / 2f
             cx = w / 2f
             cy = h / 2f
+            bcx = cx
+            bcy = cy
+            bcxCon = 0f
+            bcyCon = 0f
+            msgDrawX = cx - nBitmapHalfWidth
+            msgDrawY = cy - nBitmapHalfHeight
             debugPaint.color = Color.YELLOW
             debugPaint.isAntiAlias = true
             debugPaint.strokeWidth = 2f
@@ -210,6 +245,33 @@ class MsgView
             return true
         }
 
+        /**
+         * Legacy Java `update()`: integrate accelerometer into offset and clamp to inner circle.
+         */
+        private fun updateFloatingFromSensor() {
+            val shaker = MainActivity.getShakerInstance() ?: return
+            mSensorX = shaker.sx
+            mSensorY = shaker.sy
+            mSensorZ = shaker.sz
+            bcxCon += mSensorX
+            bcyCon -= mSensorY
+            val distSq = bcxCon * bcxCon + bcyCon * bcyCon
+            if (distSq >= cxcyBoundaryRadiusSquare) {
+                isBoundaryOut = true
+                if (bcxCon != 0f && bcyCon != 0f) {
+                    radian = atan2(bcyCon, bcxCon)
+                }
+                bcxCon = cos(radian) * cxcyBoundaryRadius
+                bcyCon = sin(radian) * cxcyBoundaryRadius
+            } else {
+                isBoundaryOut = false
+            }
+            bcx = bcxCon + cx
+            bcy = bcyCon + cy
+            msgDrawX = bcx - nBitmapHalfWidth
+            msgDrawY = bcy - nBitmapHalfHeight
+        }
+
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
             if (isInEditMode || widthPx <= 0) return
@@ -228,37 +290,60 @@ class MsgView
             canvas.drawArc(reflectRectF, 135 + reflectionDegree, 180f, true, reflectPaint)
             canvas.drawCircle(cx, cy, innerOuterRadius, innerOuterPaint)
             canvas.drawCircle(cx, cy, innerInnerRadius, innerInnerPaint)
-            val drawX = cx - nBitmapHalfWidth
-            val drawY = cy - nBitmapHalfHeight
+
             if (Const.VIEW_DEBUG) {
-                points.add(Point(cx.toInt(), cy.toInt()))
+                points.add(Point(bcx.toInt(), bcy.toInt()))
                 if (points.size > 300) {
                     points.removeAt(0)
                 }
             }
+
+            if (rIncrease) {
+                degree += 0.1f
+                if (degree >= rBoundary) {
+                    rIncrease = false
+                }
+            } else {
+                degree -= 0.1f
+                if (degree <= -rBoundary) {
+                    rIncrease = true
+                }
+            }
+
+            updateFloatingFromSensor()
+
+            canvas.rotate(degree, bcx, bcy)
+            if (Const.VIEW_DEBUG) {
+                canvas.drawCircle(bcx, bcy, nBitmapHalfWidth, debugCirclePaint)
+            }
+
             resized?.let { bmp ->
                 if (appearFlag && alphaIndex < alphaValueTable.size) {
                     msgPaint.alpha = alphaValueTable[alphaIndex]
                     alphaIndex++
-                    canvas.save()
                     val sc = scaleValueTable[scaleIndex.coerceAtMost(scaleValueTable.size - 1)]
                     if (scaleIndex < scaleValueTable.size) {
                         scaleIndex++
                     }
-                    canvas.scale(sc, sc, cx, cy)
-                    canvas.drawBitmap(bmp, drawX, drawY, msgPaint)
-                    canvas.restore()
+                    canvas.scale(sc, sc, bcx, bcy)
+                    canvas.drawBitmap(bmp, msgDrawX, msgDrawY, msgPaint)
                     if (alphaIndex >= alphaValueTable.size) {
                         appearFlag = false
                         msgPaint.alpha = 255
                     }
                 } else {
                     msgPaint.alpha = 255
-                    canvas.drawBitmap(bmp, drawX, drawY, msgPaint)
+                    canvas.drawBitmap(bmp, msgDrawX, msgDrawY, msgPaint)
                 }
             }
+
             if (Const.VIEW_DEBUG) {
-                canvas.drawCircle(cx, cy, nBitmapHalfWidth, debugCirclePaint)
+                canvas.drawCircle(bcx, bcy, 10f, debugCenterTracePaint)
+                canvas.drawCircle(cx, cy, cxcyBoundaryRadius, debugPaint)
+            }
+            canvas.rotate(-degree, bcx, bcy)
+
+            if (Const.VIEW_DEBUG) {
                 canvas.drawRect(
                     (widthPx - touchArea).toFloat(),
                     0f,
@@ -266,6 +351,24 @@ class MsgView
                     touchArea.toFloat(),
                     debugPaint,
                 )
+                canvas.drawText("mSensorX : $mSensorX", 50f, 100f, debugTextPaint)
+                canvas.drawText("mSensorY : $mSensorY", 50f, 150f, debugTextPaint)
+                canvas.drawText("mSensorZ : $mSensorZ", 50f, 200f, debugTextPaint)
+                canvas.drawText("x : $msgDrawX", 50f, 250f, debugTextPaint)
+                canvas.drawText(", y : $msgDrawY", 400f, 250f, debugTextPaint)
+                canvas.drawText("bcx : $bcx", 50f, 300f, debugTextPaint)
+                canvas.drawText(", bcy : $bcy", 400f, 300f, debugTextPaint)
+                canvas.drawText("bcxCon : $bcxCon", 50f, 350f, debugTextPaint)
+                canvas.drawText(", bcyCon : $bcyCon", 400f, 350f, debugTextPaint)
+                canvas.drawText(
+                    "isBoundaryOut : $isBoundaryOut, cx : $cx, cy : $cy",
+                    50f,
+                    400f,
+                    debugTextPaint,
+                )
+            }
+
+            if (Const.VIEW_DEBUG) {
                 val length = points.size
                 var blue = 0
                 var increase = true
