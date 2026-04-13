@@ -10,3 +10,5 @@
 *.ap_
 *.aab
 secrets.properties
+.externalNativeBuild
+app/build/
