@@ -11,14 +11,14 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 **Layout:** `app/src/main/res/layout/include_magic_title.xml`
 
 **Width rule / 가로 기준:**  
-- Horizontal `LinearLayout`: weighted spacers **7.5% + 85% + 7.5%** of the **parent width** (same on phone and tablet).  
-- 가로 `LinearLayout`: 부모 **너비** 대비 **7.5% + 85% + 7.5%** 가중치.  
-- The `ImageView` sits in the **85%** slot: `layout_width="0dp"`, `layout_weight="0.85"`, `adjustViewBounds="true"`, `layout_height="wrap_content"`, `scaleType="fitCenter"`.  
-- 이미지는 **85%** 슬롯에 두고, **가로가 부모 너비의 85%**가 되도록 한 뒤 비율에 맞춰 **세로는 intrinsic** (`wrap_content` + `adjustViewBounds`).
+- Horizontal `LinearLayout`: weighted spacers **2.5% + 95% + 2.5%** of the **parent width** (same on phone and tablet).  
+- 가로 `LinearLayout`: 부모 **너비** 대비 **2.5% + 95% + 2.5%** 가중치.  
+- The `ImageView` sits in the **95%** slot: `layout_width="0dp"`, `layout_weight="0.95"`, `adjustViewBounds="true"`, `layout_height="wrap_content"`, `scaleType="fitCenter"`.  
+- 이미지는 **95%** 슬롯에 두고, **가로가 부모 너비의 95%**가 되도록 한 뒤 비율에 맞춰 **세로는 intrinsic** (`wrap_content` + `adjustViewBounds`).
 
 **Height rule / 세로:**  
-- **Not** a fixed dp row height. The title row height follows the **scaled drawable height** at 85% width (aspect ratio preserved).  
-- **고정 dp 행 높이 없음.** 타이틀 행 세로는 **너비 85%로 스케일된 이미지 높이**에 따름.
+- **Not** a fixed dp row height. The title row height follows the **scaled drawable height** at 95% width (aspect ratio preserved).  
+- **고정 dp 행 높이 없음.** 타이틀 행 세로는 **너비 95%로 스케일된 이미지 높이**에 따름.
 
 **Outer wrapper / 바깥 래퍼:**  
 - `FrameLayout` with `layout_height="wrap_content"`, `paddingTop="@dimen/title_top_margin"` (**12dp**).  
@@ -26,15 +26,15 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 
 | Setting / 항목 | Value / 값 |
 |----------------|------------|
-| `title_top_margin` | **12dp** — `values/dimens.xml` |
-| Image horizontal share / 이미지 가로 비율 | **85%** of fragment (column) width |
-| Side margins (implicit) / 좌우 여백 | **7.5%** each via `Space` weights |
+| `title_top_margin` | **16dp** — `values/dimens.xml` |
+| Image horizontal share / 이미지 가로 비율 | **95%** of fragment (column) width |
+| Side margins (implicit) / 좌우 여백 | **2.5%** each via `Space` weights |
 
 **Fragment layouts:**  
 - Phone: `layout/main_fragment.xml`, `layout/msg_fragment.xml` (overlay ball + title wrapper).  
 - Tablet: `layout-sw600dp/main_fragment.xml`, `layout-sw600dp/msg_fragment.xml` (column: title row → ball `weight=1` → bottom chrome).
 
-**Tuning / 조정:** change **0.075 / 0.85 / 0.075** weights in `include_magic_title.xml`, or `title_top_margin`, `screen_top_padding`.  
+**Tuning / 조정:** change **0.025 / 0.95 / 0.025** weights in `include_magic_title.xml`, or `title_top_margin`, `screen_top_padding`.  
 **튜닝:** `include_magic_title.xml`의 weight 비율, `title_top_margin`, `screen_top_padding`.
 
 ---
@@ -102,8 +102,8 @@ This document describes how **title bar**, **main (Front) ball**, and **msg (Msg
 | `ad_banner_slot_height` | Banner slot in `activity_main` |
 | `magic_ball_max_diameter` | **FrontView only** — diameter cap; phone `values/dimens.xml` (6000dp ≈ uncapped), tablet `values-sw600dp/dimens.xml` (440dp) |
 
-**Note / 참고:** `magic_chrome_title_block_height` was removed; title height is width-driven (85%) + intrinsic aspect.  
-**참고:** `magic_chrome_title_block_height`는 제거됨. 타이틀 세로는 가로 85% + 비율 기반.
+**Note / 참고:** `magic_chrome_title_block_height` was removed; title height is width-driven (95%) + intrinsic aspect.  
+**참고:** `magic_chrome_title_block_height`는 제거됨. 타이틀 세로는 가로 95% + 비율 기반.
 
 ---
 
@@ -122,5 +122,5 @@ Logcat 필터 **`MagicBallScale`**.
 
 ---
 
-*Title: 85% width, intrinsic height. Msg ball %: tablet portrait 130, tablet landscape 110.*  
-*타이틀: 가로 85%, 세로 intrinsic. Msg 볼 %: 태블릿 세로 130, 가로 110.*
+*Title: 95% width, intrinsic height. Msg ball %: tablet portrait 130, tablet landscape 110. Policy: Msg ≥ Front.*  
+*타이틀: 가로 95%, 세로 intrinsic. Msg 볼 %: 태블릿 세로 130, 가로 110. 정책: Msg ≥ Front.*

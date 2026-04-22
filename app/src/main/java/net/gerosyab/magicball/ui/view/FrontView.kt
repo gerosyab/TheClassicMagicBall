@@ -86,8 +86,12 @@ class FrontView
             val pctRaw = resources.getInteger(R.integer.front_ball_radius_percent)
             val pct = pctRaw.coerceIn(70, 200)
             var r = rBase * (pct / 100f)
-            // No in-view maxFit clamp — ball may extend past view bounds (clipChildren false on fragments).
+            // Cap by max diameter resource, then inscribe in view (tablet middle band + % can clip).
             outerRadius = min(r, maxRadiusFromCap)
+            val maxRForView = min(w, h) / 2f - 2f
+            if (outerRadius > maxRForView) {
+                outerRadius = maxRForView
+            }
             val swDp = resources.configuration.smallestScreenWidthDp
             val orient =
                 when (resources.configuration.orientation) {

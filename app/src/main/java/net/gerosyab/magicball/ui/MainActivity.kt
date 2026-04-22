@@ -4,6 +4,7 @@
  */
 package net.gerosyab.magicball.ui
 
+import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -11,12 +12,17 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.commit
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
+import net.gerosyab.magicball.BuildConfig
 import net.gerosyab.magicball.R
 import net.gerosyab.magicball.data.Const
 import net.gerosyab.magicball.databinding.ActivityMainBinding
@@ -35,11 +41,23 @@ class MainActivity :
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        MobileAds.initialize(this) {}
+        if (!resources.getBoolean(R.bool.allow_rotation)) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
 
-        binding.adView.loadAd(
-            AdRequest.Builder().build(),
-        )
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.motherLinear) { v, windowInsets ->
+            val bars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+
+        if (BuildConfig.ADS_ENABLED) {
+            MobileAds.initialize(this) {}
+            binding.adView.loadAd(AdRequest.Builder().build())
+        } else {
+            binding.adBannerSlot.visibility = View.GONE
+        }
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -53,7 +71,7 @@ class MainActivity :
     override fun onResume() {
         MyLog.d("MainActivity", "onResume")
         super.onResume()
-        binding.adView.resume()
+        if (BuildConfig.ADS_ENABLED) binding.adView.resume()
         if (shaker == null) {
             shaker = Shaker(applicationContext, this)
         }
@@ -62,14 +80,14 @@ class MainActivity :
 
     override fun onPause() {
         MyLog.d("MainActivity", "onPause")
-        binding.adView.pause()
+        if (BuildConfig.ADS_ENABLED) binding.adView.pause()
         shaker?.close()
         super.onPause()
     }
 
     override fun onDestroy() {
         MyLog.d("MainActivity", "onDestroy")
-        binding.adView.destroy()
+        if (BuildConfig.ADS_ENABLED) binding.adView.destroy()
         super.onDestroy()
     }
 
@@ -105,11 +123,12 @@ class MainActivity :
             "MainActivity",
             "onShakingDetected backStack=" + supportFragmentManager.backStackEntryCount,
         )
-        vibrateShort()
         if (supportFragmentManager.backStackEntryCount > 0) {
+            // MsgFragment.setNewMessage() handles vibration itself
             (supportFragmentManager.findFragmentById(R.id.content_frame) as? MsgFragment)
                 ?.setNewMessage()
         } else {
+            vibrateShort()
             supportFragmentManager.commit {
                 replace(R.id.content_frame, MsgFragment.newInstance(tabletScaleFactor = 1f))
                 addToBackStack(null)
@@ -132,7 +151,7 @@ class MainActivity :
         }
     }
 
-    private fun vibrateShort() {
+    fun vibrateShort() {
         val duration = Const.VIB_TIME_MS
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vm = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager

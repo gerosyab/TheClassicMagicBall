@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Wider cap so tablet % scaling is not clipped too early -->
+    <dimen name="magic_ball_max_diameter">660dp</dimen>
+    <dimen name="magic_bottom_chrome_horizontal_inset">0dp</dimen>
+    <!-- Tablet landscape: vertical space is tight, so shrink title significantly (40%). -->
+    <item name="title_image_weight" format="float" type="dimen">0.40</item>
+    <item name="title_side_weight" format="float" type="dimen">0.3</item>
+</resources>

@@ -6,18 +6,15 @@ package net.gerosyab.magicball.ui
 
 import android.graphics.Color
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.util.Linkify
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import java.io.ByteArrayOutputStream
 import net.gerosyab.magicball.R
 import net.gerosyab.magicball.databinding.MainFragmentBinding
 import net.gerosyab.magicball.util.MyLog
@@ -78,8 +75,6 @@ class MainFragment : Fragment() {
         binding.secondaryTextSwitcher.inAnimation = fadeIn
         binding.secondaryTextSwitcher.outAnimation = fadeOut
 
-        binding.infoText.setOnClickListener { showInfoDialog() }
-
         binding.hintActionButton.setOnClickListener {
             activityRef?.openMsgFromPill()
         }
@@ -108,7 +103,7 @@ class MainFragment : Fragment() {
     private fun makeSecondaryTextView(ctx: android.content.Context): TextView {
         return TextView(ctx).apply {
             gravity = Gravity.CENTER
-            textSize = 20f
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setTextColor(Color.WHITE)
         }
     }
@@ -122,29 +117,6 @@ class MainFragment : Fragment() {
         val dy = y - fv.cy
         val r = fv.radius
         return dx * dx + dy * dy <= r * r
-    }
-
-    private fun showInfoDialog() {
-        val message =
-            try {
-                resources.openRawResource(R.raw.info).use { input ->
-                    ByteArrayOutputStream().use { bos ->
-                        input.copyTo(bos)
-                        bos.toString(Charsets.UTF_8.name())
-                    }
-                }
-            } catch (_: Exception) {
-                return
-            }
-        val s = SpannableString(message)
-        Linkify.addLinks(s, Linkify.WEB_URLS)
-        val dialog =
-            AlertDialog.Builder(requireContext())
-                .setTitle("Information")
-                .setMessage(s)
-                .create()
-        dialog.show()
-        dialog.findViewById<TextView>(android.R.id.message)?.textSize = 12f
     }
 
     override fun onAttach(context: android.content.Context) {

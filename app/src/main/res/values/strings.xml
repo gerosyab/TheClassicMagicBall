@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">TheClasicMagicBall</string>
-    <string name="copyright">COPYRIGHT <![CDATA[ⓒ]]> 2014 DAISSUE</string>
+    <string name="app_name">MagicBall</string>
+    <string name="copyright">COPYRIGHT <![CDATA[ⓒ]]> 2026 GEROSYAB</string>
     <string name="information"><u>INFORMATION</u></string>
     <string name="hint_shake_me">SHAKE ME</string>
     <string name="hint_touch_me">TOUCH ME</string>

@@ -14,8 +14,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.text.SpannableString
-import android.text.util.Linkify
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.PixelCopy
@@ -24,10 +23,8 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -92,14 +89,12 @@ class MsgFragment : Fragment() {
         binding.secondaryTextSwitcher.setFactory {
             TextView(ctx).apply {
                 gravity = Gravity.CENTER
-                textSize = 20f
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 setTextColor(Color.WHITE)
             }
         }
         binding.secondaryTextSwitcher.inAnimation = fadeIn
         binding.secondaryTextSwitcher.outAnimation = fadeOut
-
-        binding.infoText.setOnClickListener { showInfoDialog() }
 
         binding.buttonBack.setOnClickListener {
             parentFragmentManager.popBackStack()
@@ -114,32 +109,10 @@ class MsgFragment : Fragment() {
 
     fun setNewMessage() {
         MyLog.d("MsgFragment", "setNewMessage")
+        (activity as? MainActivity)?.vibrateShort()
         val mv = _binding?.msgview ?: return
         mv.setMsgIdx(MyRandom.getNum())
         mv.notifyMsgChanged()
-    }
-
-    private fun showInfoDialog() {
-        val message =
-            try {
-                resources.openRawResource(R.raw.info).use { input ->
-                    ByteArrayOutputStream().use { bos ->
-                        input.copyTo(bos)
-                        bos.toString(Charsets.UTF_8.name())
-                    }
-                }
-            } catch (_: Exception) {
-                return
-            }
-        val s = SpannableString(message)
-        Linkify.addLinks(s, Linkify.ALL)
-        val dialog =
-            AlertDialog.Builder(requireContext())
-                .setTitle("Information")
-                .setMessage(s)
-                .create()
-        dialog.show()
-        dialog.findViewById<TextView>(android.R.id.message)?.textSize = 14f
     }
 
     override fun onResume() {

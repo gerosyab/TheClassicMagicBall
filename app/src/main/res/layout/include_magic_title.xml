@@ -9,7 +9,7 @@
         android:id="@+id/title_banner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clickable="true"
+        android:clickable="false"
         android:focusable="false"
         android:gravity="center_vertical"
         android:orientation="horizontal">
@@ -17,13 +17,13 @@
         <Space
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="0.075" />
+            android:layout_weight="@dimen/title_side_weight" />
 
         <ImageView
             android:id="@+id/title_image"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.85"
+            android:layout_weight="@dimen/title_image_weight"
             android:adjustViewBounds="true"
             android:contentDescription="@string/app_name"
             android:scaleType="fitCenter"
@@ -32,6 +32,6 @@
         <Space
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="0.075" />
+            android:layout_weight="@dimen/title_side_weight" />
     </LinearLayout>
 </merge>

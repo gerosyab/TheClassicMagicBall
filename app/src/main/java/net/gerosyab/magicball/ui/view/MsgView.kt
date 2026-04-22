@@ -20,6 +20,7 @@ import android.view.View
 import java.util.ArrayList
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.sin
 import net.gerosyab.magicball.R
@@ -151,6 +152,24 @@ class MsgView
             val pct = pctRaw.coerceIn(70, 220)
             var r = rBase * (pct / 100f)
             outerRadius = r
+            val screenMinPx =
+                min(
+                    resources.displayMetrics.widthPixels,
+                    resources.displayMetrics.heightPixels,
+                ).toFloat()
+            val maxRForView =
+                if (swDp >= 600) {
+                    // Tablet: diameter ≤ ~70% of shorter screen side; also cannot exceed half shorter view side.
+                    val maxFromScreen = screenMinPx * 0.35f
+                    val maxFromView = min(w, h) / 2f
+                    min(maxFromScreen, maxFromView)
+                } else {
+                    // Mobile: allow corner-reaching circle (larger than min(w,h)/2 when h≠w); still view-clipped.
+                    hypot(w / 2f, h / 2f) - 1f
+                }
+            if (outerRadius > maxRForView) {
+                outerRadius = maxRForView
+            }
             val orient =
                 when (resources.configuration.orientation) {
                     Configuration.ORIENTATION_LANDSCAPE -> "landscape"
